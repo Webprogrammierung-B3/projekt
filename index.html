@@ -3,9 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <title>Guess it's Berlin?</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+        integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+        crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+          integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+          crossorigin=""></script>
+  <style>
+    #map {
+        width: 80%;
+        height: 600px;
+    }
+  </style>
 </head>
 <body>
 <h1>Guess it's Berlin?</h1>
+<div id="map">
+</div>
 <main>
     <img src="img/berlin.png" alt="Berlin">
     <img src="img/Schild.png" alt="Schild">
@@ -19,5 +33,15 @@
         <li><a href="highscore.html">Highscores</a></li>
     </ul>
 </nav>
+<script>
+  const cornerTopLeft = L.latLng(52.518611, 13.408333);
+  const cornerBottomRight = L.latLng(52.618611, 13.508333);
+  const bounds = L.latLngBounds(cornerTopLeft, cornerBottomRight);
+  const map = L.map('map', { maxBoundsViscosity: 1.0 }).fitBounds([[52.518611, 13.408333], [52.618611, 13.508333]], 11);
+  map.setMaxBounds(bounds)
+  L.tileLayer('https://tiles.wmflabs.org/osm-no-labels/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+  }).addTo(map);
+</script>
 </body>
 </html>
