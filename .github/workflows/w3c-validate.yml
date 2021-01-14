@@ -15,4 +15,5 @@ jobs:
         with:
           root: /
           css: true
-          format: gnu
+          format: text
+          log_level: INFO
