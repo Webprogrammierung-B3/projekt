@@ -15,4 +15,4 @@ jobs:
         with:
           root: /
           css: true
-          format: text
+          format: gnu
