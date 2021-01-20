@@ -1,0 +1,37 @@
+.navlink {
+    display: flex;
+    flex-wrap: wrap;
+    padding: 0;
+}
+
+.navlink > li {
+    padding: 0.5rem;
+    list-style-type: none;
+    background-color: #FF0000;
+}
+
+.navlink > li > a {
+    color: #FFFFFF;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+.form-wrapper {
+    display: grid;
+    grid-template-columns: 10rem 15rem;
+    row-gap: 0.5rem;
+}
+
+.form-actions {
+    margin-top: 1rem;
+}
+
+@media only screen and (max-width: 26rem) {
+    .form-wrapper {
+        grid-template-columns: auto;
+        row-gap: 0.25rem;
+    }
+    .form-wrapper > *:nth-child(even) {
+        margin-bottom: 0.5rem;
+    }
+}
