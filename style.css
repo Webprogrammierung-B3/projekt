@@ -1,0 +1,18 @@
+.navlink {
+  display: flex;
+  flex-wrap: wrap;
+  padding: 0;
+}
+
+.navlink > li {
+ padding: 0.5rem;
+ list-style-type: none;
+ background-color: #FF0000;
+}
+
+.navlink > li > a {
+color: #FFFFFF;
+font-weight: bold;
+text-decoration: none;
+}
+
