@@ -1,0 +1,19 @@
+{
+  "name": "guess-its-berlin",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Webprogrammierung-B3/projekt.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Webprogrammierung-B3/projekt/issues"
+  },
+  "homepage": "https://github.com/Webprogrammierung-B3/projekt#readme"
+}
