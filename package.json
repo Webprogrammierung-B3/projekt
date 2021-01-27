@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/Webprogrammierung-B3/projekt/issues"
   },
-  "homepage": "https://github.com/Webprogrammierung-B3/projekt#readme"
+  "homepage": "https://github.com/Webprogrammierung-B3/projekt#readme",
+  "dependencies": {
+    "express": "^4.17.1"
+  }
 }
