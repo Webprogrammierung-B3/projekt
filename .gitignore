@@ -1,2 +1,5 @@
 .idea/
 node_modules/
+result.json
+result.min.json
+*.pbf
