@@ -1,0 +1,21 @@
+<h1>Registrieren</h1>
+<p>Bitte registrieren Sie sich mit einem <i>persönlichen</i> <u>Benutzernamen</u>, <u>E-Mail</u> <b>und</b> <u>Passwort</u>.</p>
+<form action="/api/login" method="post">
+    <div class="form-wrapper">
+        <label for="name">Benutzername:</label>
+        <input type="text" id="name" name="username">
+
+        <label for="email">E-Mail:</label>
+        <input type="email" id="email" name="email">
+
+        <label for="passwort">Passwort:</label>
+        <input type="password" id="passwort" name="password">
+
+        <label for="passwort_2">Passwort wiederholen:</label>
+        <input type="password" id="passwort_2">
+    </div>
+    <div class="form-actions">
+        <button type="reset">Zurücksetzen</button>
+        <button type="submit">Registrieren</button>
+    </div>
+</form>
