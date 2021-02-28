@@ -1,0 +1,27 @@
+{{#extend "header"}}
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+          integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+          crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+            integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+            crossorigin=""></script>
+    <style>
+        #map {
+            width: 80%;
+            height: 600px;
+        }
+    </style>
+{{/extend}}
+
+<div id="map"></div>
+<script>
+    const cornerTopLeft = L.latLng(52.673639351743326, 13.019099490676352);
+    const cornerBottomRight = L.latLng(52.34254034713163, 13.766007272821431);
+    const bounds = L.latLngBounds(cornerTopLeft, cornerBottomRight);
+    const map = L.map('map', { minZoom: 11,
+        maxBoundsViscosity: 1.0 }).fitBounds([[52.673639351743326, 13.019099490676352], [52.34254034713163, 13.766007272821431]], 11);
+    map.setMaxBounds(bounds)
+    L.tileLayer('https://tiles.wmflabs.org/osm-no-labels/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+</script>

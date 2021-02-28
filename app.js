@@ -1,6 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const session = require('express-session')
+const session = require('express-session');
+const hbs = require('hbs');
 const app = express();
 const port = 8080;
 app.set('view engine', 'hbs');
@@ -11,6 +12,25 @@ app.use(session({
     cookie: { secure: false }
 }))
 app.use(bodyParser.urlencoded({ extended: true }));
+
+const blocks = {};
+
+hbs.registerHelper('extend', function(name, context) {
+    let block = blocks[name];
+    if (!block) {
+        block = blocks[name] = [];
+    }
+
+    block.push(context.fn(this)); // for older versions of handlebars, use block.push(context(this));
+});
+
+hbs.registerHelper('block', function(name) {
+    const val = (blocks[name] || []).join('\n');
+
+    // clear the block
+    blocks[name] = [];
+    return val;
+});
 
 app.listen(port, () => {
     console.log(`Example app listening at http://localhost:${port}`);
@@ -40,6 +60,10 @@ app.get('/howto.html', function(req, res, next) {
 
 app.get('/register.html', function(req, res, next) {
     res.render('register', { username: req.session.username, layout: 'layout.hbs' })
+});
+
+app.get('/game.html', function(req, res, next) {
+    res.render('game', { username: req.session.username, layout: 'layout.hbs' })
 });
 
 app.use(express.static('public'));
