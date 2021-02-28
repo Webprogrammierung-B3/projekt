@@ -2,6 +2,9 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const session = require('express-session');
 const hbs = require('hbs');
+const streets = require('./data/dist/result.min.json')
+const streetNames = Object.keys(streets);
+const len = streetNames.length;
 const app = express();
 const port = 8080;
 app.set('view engine', 'hbs');
@@ -14,6 +17,10 @@ app.use(session({
 app.use(bodyParser.urlencoded({ extended: true }));
 
 const blocks = {};
+
+function getRandomStreet() {
+    return streetNames[Math.floor(Math.random() * len)];
+}
 
 hbs.registerHelper('extend', function(name, context) {
     let block = blocks[name];
@@ -64,6 +71,19 @@ app.get('/register.html', function(req, res, next) {
 
 app.get('/game.html', function(req, res, next) {
     res.render('game', { username: req.session.username, layout: 'layout.hbs' })
+});
+
+app.get('/api/game', function(req, res, next) {
+    const responseJson = {
+        streetName: getRandomStreet(),
+        currentPoints: 0,
+        round: 1,
+        totalRounds: 5
+    };
+    req.session.currentGame = {
+        rounds: []
+    }
+    res.send(responseJson)
 });
 
 app.use(express.static('public'));

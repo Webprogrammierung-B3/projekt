@@ -14,6 +14,9 @@
 {{/extend}}
 
 <div id="map"></div>
+<div>Gesuchter Straßenname: <span class="js--streetname"></span></div>
+<div>Deine Punkte: <span class="js--points"></span></div>
+<div>Runde <span class="js--round"></span> von <span class="js--round-total"></span></div>
 <script>
     const cornerTopLeft = L.latLng(52.673639351743326, 13.019099490676352);
     const cornerBottomRight = L.latLng(52.34254034713163, 13.766007272821431);
@@ -24,4 +27,13 @@
     L.tileLayer('https://tiles.wmflabs.org/osm-no-labels/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
+    function getNextRound() {
+        fetch("/api/game").then(response => response.json()).then(json => {
+            document.querySelector('.js--streetname').innerText = json.streetName;
+            document.querySelector('.js--points').innerText = json.currentPoints;
+            document.querySelector('.js--round').innerText = json.round;
+            document.querySelector('.js--round-total').innerText = json.totalRounds;
+        })
+    }
+    getNextRound();
 </script>
