@@ -5,6 +5,7 @@ const hbs = require('hbs');
 const streets = require('./data/dist/result.min.json');
 const haversine = require('haversine-distance');
 const {uuid} = require('uuidv4');
+const { uniqueNamesGenerator, adjectives, colors, animals } = require('unique-names-generator');
 const streetNames = Object.keys(streets);
 const len = streetNames.length;
 const app = express();
@@ -52,32 +53,37 @@ app.get('*.html', function(req, res, next) {
     if (req.session.username) {
         next();
     } else {
-        req.session.username = Math.random();
+        req.session.username = getRandomName();
         next();
     }
 });
 
-app.get('/index.html', function(req, res, next) {
-    res.render('index', { username: req.session.username, layout: 'layout.hbs' })
+app.get('/', function(req, res) {
+    res.redirect('/index.html');
+})
+
+app.get('/index.html', function(req, res) {
+    console.log(GAMES)
+    res.render('index', { username: req.session.username, layout: 'layout.hbs', games: Object.values(GAMES)})
 });
 
-app.get('/highscore.html', function(req, res, next) {
+app.get('/highscore.html', function(req, res) {
     res.render('highscore', { username: req.session.username, layout: 'layout.hbs' })
 });
 
-app.get('/howto.html', function(req, res, next) {
+app.get('/howto.html', function(req, res) {
     res.render('howto', { username: req.session.username, layout: 'layout.hbs' })
 });
 
-app.get('/register.html', function(req, res, next) {
+app.get('/register.html', function(req, res) {
     res.render('register', { username: req.session.username, layout: 'layout.hbs' })
 });
 
-app.get('/game.html', function(req, res, next) {
+app.get('/game.html', function(req, res) {
     res.render('game', { username: req.session.username, layout: 'layout.hbs' })
 });
 
-app.get('/api/game', function(req, res, next) {
+app.get('/api/game', function(req, res) {
     const streetName = getRandomStreet();
     if (req.session.currentGame === undefined) {
         req.session.currentGame = {
@@ -98,7 +104,7 @@ app.get('/api/game', function(req, res, next) {
     res.send(responseJson)
 });
 
-app.post('/api/game', function(req, res, next) {
+app.post('/api/game', function(req, res) {
     console.log(req.body, 1);
     const currentGame = req.session.currentGame;
     const currentGuess = req.body;
@@ -151,5 +157,9 @@ app.post('/api/game', function(req, res, next) {
     res.send(responseJson)
     console.log(req.body);
 });
+
+function getRandomName() {
+    return uniqueNamesGenerator({ dictionaries: [adjectives, colors, animals] }); // big_red_donkey
+}
 
 app.use(express.static('public'));
