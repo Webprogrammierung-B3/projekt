@@ -1,3 +1,4 @@
+const path = require('path');
 const express = require('express');
 const bodyParser = require('body-parser');
 const session = require('express-session');
@@ -46,7 +47,6 @@ app.listen(port, () => {
 });
 
 app.get('*.html', function(req, res, next) {
-    console.log(req.session.username)
     if (req.session.username) {
         next();
     } else {
@@ -60,7 +60,6 @@ app.get('/', function(req, res) {
 })
 
 app.get('/index.html', function(req, res) {
-    console.log(GAMES)
     res.render('index', { username: req.session.username, layout: 'layout.hbs', games: Object.values(GAMES)})
 });
 
@@ -110,7 +109,6 @@ app.get('/api/game', function(req, res) {
 });
 
 app.post('/api/game', function(req, res) {
-    console.log(req.body, 1);
     const currentGame = req.session.currentGame;
     const currentGuess = req.body;
     const currentRoundIndex = currentGame.rounds.length - 1;
@@ -122,7 +120,6 @@ app.post('/api/game', function(req, res) {
     for (const polygon of streetPolygons) {
         for (const coordinate of polygon.coordinates) {
             const distance = Math.round(haversine(currentGuess, coordinate));
-            console.log(distance);
             if (shortestDistance !== undefined) {
                 if (distance < shortestDistance) {
                     shortestDistance = distance;
@@ -134,7 +131,6 @@ app.post('/api/game', function(req, res) {
             }
         }
     }
-    console.log("shortest Distance: ",shortestDistance);
     currentGame.rounds[currentRoundIndex].distance = shortestDistance;
     currentGame.rounds[currentRoundIndex].points = shortestDistance;
     let currentPoints = 0;
@@ -160,11 +156,12 @@ app.post('/api/game', function(req, res) {
     }
 
     res.send(responseJson)
-    console.log(req.body);
 });
 
 function getRandomName() {
     return uniqueNamesGenerator({ dictionaries: [adjectives, animals] });
 }
+
+app.use('/icons', express.static(path.join(__dirname, 'node_modules/feather-icons/dist')))
 
 app.use(express.static('public'));

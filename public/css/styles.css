@@ -14,10 +14,19 @@ header {
     justify-content: space-between;
 }
 
+.header__body > div {
+    display: flex;
+    justify-content: space-between;
+}
+
 .header__title {
     font-weight: bold;
 }
 
 main {
     padding: 0.5rem;
+}
+
+svg {
+    height: 19px;
 }

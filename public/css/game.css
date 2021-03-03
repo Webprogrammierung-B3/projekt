@@ -43,6 +43,10 @@ footer {
     padding: 0.5rem;
 }
 
+.footer__number {
+    font-weight: bold;
+}
+
 .game__submit {
     border: 0;
     text-align: center;

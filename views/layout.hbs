@@ -5,16 +5,23 @@
     <title>Guess it's Berlin?</title>
     <link rel="stylesheet" href="css/styles.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="icons/feather.js"></script>
     {{{block "header"}}}
 </head>
 <body>
 <header>
     <div class="header__body">
-        <span class="header__title">Guess it's Berlin?!</span>
+        <div>
+            <i data-feather="chevron-left"></i>
+            <span class="header__title">Guess it's Berlin?!</span>
+        </div>
         <span>{{ username }}</span>
     </div>
 </header>
 {{{body}}}
+<script>
+    feather.replace()
+</script>
 </body>
 </html>
 

@@ -12,14 +12,15 @@
 <footer>
     <div class="game__streetname-box"><div class="game__streetname"><div>Gesuchte Straße:</div><div class="streetname js--streetname"></div></div></div>
     <div class="footer__data">
-        <div>Punkte: <span class="js--points">0</span></div>
-        <div>Runde: <span class="js--round">0</span>/<span class="js--round-total">0</span></div>
+        <div>Punkte: <span class="js--points footer__number">0</span></div>
+        <div>Runde: <span class="js--round footer__number">0</span>/<span class="js--round-total">0</span></div>
     </div>
     <button class="game__submit js--submit hidden" onclick="submitGuess()">Submit your guess!</button>
     <button class="game__submit js--next hidden" onclick="getNextRound()">Next round!</button>
     <button class="game__submit js--loading hidden" disabled>Loading...</button>
 </footer>
 <script>
+    let canMakeNewGuess = true;
     const submitButton = document.querySelector('.js--submit');
     const nextButton = document.querySelector('.js--next');
     const loadingButton = document.querySelector('.js--loading');
@@ -31,14 +32,15 @@
     map.setMaxBounds(bounds)
     let currentGuess;
     map.on('click', function(e) {
-        console.log(e.latlng);
-        if (currentGuess !== undefined) {
-            map.removeLayer(currentGuess);
+        if (canMakeNewGuess) {
+            if (currentGuess !== undefined) {
+                map.removeLayer(currentGuess);
+            }
+            const marker = L.marker([e.latlng.lat,e.latlng.lng]);
+            currentGuess = marker;
+            marker.addTo(map);
+            submitButton.classList.remove('hidden');
         }
-        const marker = L.marker([e.latlng.lat,e.latlng.lng]);
-        currentGuess = marker;
-        marker.addTo(map);
-        submitButton.classList.remove('hidden');
     });
     L.tileLayer('https://tiles.wmflabs.org/osm-no-labels/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -61,9 +63,11 @@
             document.querySelector('.js--round').innerText = json.round;
             document.querySelector('.js--round-total').innerText = json.totalRounds;
             loadingButton.classList.add('hidden');
+            canMakeNewGuess = true;
         })
     }
     function submitGuess() {
+        canMakeNewGuess = false;
         submitButton.classList.add('hidden');
         loadingButton.classList.remove('hidden');
         fetch('/api/game', {
