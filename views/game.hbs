@@ -15,8 +15,8 @@
             <div>Gesuchte Straße:</div>
             <div class="streetname js--streetname"></div>
             <div class="js--result hidden">
-                Points: +<span class="footer__number js--score"></span>
-                Distance: <span class="footer__number js--distance"></span> m
+                +<span class="footer__number js--score"></span> Punkte
+                (<span class="footer__number js--distance"></span>m)
             </div>
         </div>
     </div>
@@ -43,7 +43,7 @@
     const cornerTopLeft = L.latLng(52.673639351743326, 13.019099490676352);
     const cornerBottomRight = L.latLng(52.34254034713163, 13.766007272821431);
     const bounds = L.latLngBounds(cornerTopLeft, cornerBottomRight);
-    const map = L.map('map', { minZoom: 11,
+    const map = L.map('map', { minZoom: 10,
         maxBoundsViscosity: 1.0 }).fitBounds([[52.673639351743326, 13.019099490676352], [52.34254034713163, 13.766007272821431]], 11);
     map.setMaxBounds(bounds)
     let currentGuess;
@@ -105,9 +105,9 @@
 
             console.log(JSON.stringify(json.streetPolygons))
             const geoJson = L.geoJson(json.streetPolygons, {
-                "color": "#ff7800",
-                "weight": 5,
-                "opacity": 0.65
+                color: '#ff7800',
+                weight: 5,
+                opacity: 0.65
             });
             geoJson.addTo(map);
             roundElements.push(geoJson);
@@ -119,5 +119,16 @@
             nextButton.classList.remove('hidden');
         })
     }
+    fetch('/berlin.geo.json').then(res => res.json()).then(json => {
+        console.log(1)
+        const geoJson = L.geoJSON(json, {
+            color: '#ff7800',
+            weight: 3,
+            fill: false
+        });
+        geoJson.addTo(map);
+        console.log(1)
+
+    })
     getNextRound();
 </script>
