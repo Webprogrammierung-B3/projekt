@@ -5,7 +5,7 @@ const hbs = require('hbs');
 const streets = require('./data/dist/result.min.json');
 const haversine = require('haversine-distance');
 const {uuid} = require('uuidv4');
-const { uniqueNamesGenerator, adjectives, colors, animals } = require('unique-names-generator');
+const { uniqueNamesGenerator, adjectives, animals } = require('unique-names-generator');
 const streetNames = Object.keys(streets);
 const len = streetNames.length;
 const app = express();
@@ -32,14 +32,11 @@ hbs.registerHelper('extend', function(name, context) {
     if (!block) {
         block = blocks[name] = [];
     }
-
-    block.push(context.fn(this)); // for older versions of handlebars, use block.push(context(this));
+    block.push(context.fn(this));
 });
 
 hbs.registerHelper('block', function(name) {
     const val = (blocks[name] || []).join('\n');
-
-    // clear the block
     blocks[name] = [];
     return val;
 });
@@ -84,7 +81,7 @@ app.get('/game.html', function(req, res) {
 });
 
 app.get('/api/game', function(req, res) {
-    const streetName = getRandomStreet();
+    let streetName;
     if (req.session.currentGame === undefined) {
         req.session.currentGame = {
             rounds: [],
@@ -94,14 +91,20 @@ app.get('/api/game', function(req, res) {
     for (const round of req.session.currentGame.rounds) {
         currentPoints += round.points;
     }
-    req.session.currentGame.rounds.push({streetName});
+    const currentRoundIndex = req.session.currentGame.rounds.length - 1;
+    if (currentRoundIndex >= 0 && req.session.currentGame.rounds[currentRoundIndex].guess === undefined) {
+        streetName = req.session.currentGame.rounds[currentRoundIndex].streetName;
+    } else {
+        streetName = getRandomStreet();
+        req.session.currentGame.rounds.push({streetName});
+    }
     const responseJson = {
         streetName,
         currentPoints,
         round: req.session.currentGame.rounds.length,
         totalRounds: MAX_ROUNDS
     };
-    res.send(responseJson)
+    res.send(responseJson);
 });
 
 app.post('/api/game', function(req, res) {
@@ -159,7 +162,7 @@ app.post('/api/game', function(req, res) {
 });
 
 function getRandomName() {
-    return uniqueNamesGenerator({ dictionaries: [adjectives, colors, animals] }); // big_red_donkey
+    return uniqueNamesGenerator({ dictionaries: [adjectives, animals] });
 }
 
 app.use(express.static('public'));
