@@ -5,21 +5,24 @@
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
             integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
             crossorigin=""></script>
-    <style>
-        #map {
-            width: 80%;
-            height: 600px;
-        }
-    </style>
+    <link rel="stylesheet" href="css/game.css">
 {{/extend}}
 
 <div id="map"></div>
-<div>Gesuchter Straßenname: <span class="js--streetname"></span></div>
-<div>Deine Punkte: <span class="js--points"></span></div>
-<div>Runde <span class="js--round"></span> von <span class="js--round-total"></span></div>
-<button onclick="submitGuess()">Submit</button>
-<button onclick="getNextRound()">next round</button>
+<footer>
+    <div class="game__streetname-box"><div class="game__streetname"><div>Gesuchte Straße:</div><div class="streetname js--streetname"></div></div></div>
+    <div class="footer__data">
+        <div>Punkte: <span class="js--points">0</span></div>
+        <div>Runde: <span class="js--round">0</span>/<span class="js--round-total">0</span></div>
+    </div>
+    <button class="game__submit js--submit hidden" onclick="submitGuess()">Submit your guess!</button>
+    <button class="game__submit js--next hidden" onclick="getNextRound()">Next round!</button>
+    <button class="game__submit js--loading hidden" disabled>Loading...</button>
+</footer>
 <script>
+    const submitButton = document.querySelector('.js--submit');
+    const nextButton = document.querySelector('.js--next');
+    const loadingButton = document.querySelector('.js--loading');
     const cornerTopLeft = L.latLng(52.673639351743326, 13.019099490676352);
     const cornerBottomRight = L.latLng(52.34254034713163, 13.766007272821431);
     const bounds = L.latLngBounds(cornerTopLeft, cornerBottomRight);
@@ -35,6 +38,7 @@
         const marker = L.marker([e.latlng.lat,e.latlng.lng]);
         currentGuess = marker;
         marker.addTo(map);
+        submitButton.classList.remove('hidden');
     });
     L.tileLayer('https://tiles.wmflabs.org/osm-no-labels/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -43,6 +47,8 @@
     const roundElements = [];
 
     function getNextRound() {
+        nextButton.classList.add('hidden');
+        loadingButton.classList.remove('hidden');
         if (currentGuess !== undefined) {
             map.removeLayer(currentGuess);
         }
@@ -54,10 +60,12 @@
             document.querySelector('.js--points').innerText = json.currentPoints;
             document.querySelector('.js--round').innerText = json.round;
             document.querySelector('.js--round-total').innerText = json.totalRounds;
+            loadingButton.classList.add('hidden');
         })
     }
     function submitGuess() {
-        console.log(currentGuess._latlng);
+        submitButton.classList.add('hidden');
+        loadingButton.classList.remove('hidden');
         fetch('/api/game', {
             method: 'POST',
             headers: {
@@ -83,6 +91,8 @@
             const marker = L.marker([json.closestCoordinate[1], json.closestCoordinate[0]]);
             marker.addTo(map);
             roundElements.push(marker);
+            loadingButton.classList.add('hidden');
+            nextButton.classList.remove('hidden');
         })
     }
     getNextRound();

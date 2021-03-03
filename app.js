@@ -4,7 +4,7 @@ const session = require('express-session');
 const hbs = require('hbs');
 const streets = require('./data/dist/result.min.json');
 const haversine = require('haversine-distance');
-const {uuid} = require('uuidv4');
+const { uuid } = require('uuidv4');
 const { uniqueNamesGenerator, adjectives, animals } = require('unique-names-generator');
 const streetNames = Object.keys(streets);
 const len = streetNames.length;
@@ -89,7 +89,9 @@ app.get('/api/game', function(req, res) {
     }
     let currentPoints = 0;
     for (const round of req.session.currentGame.rounds) {
-        currentPoints += round.points;
+        if (round.points !== undefined) {
+            currentPoints += round.points;
+        }
     }
     const currentRoundIndex = req.session.currentGame.rounds.length - 1;
     if (currentRoundIndex >= 0 && req.session.currentGame.rounds[currentRoundIndex].guess === undefined) {
@@ -119,7 +121,7 @@ app.post('/api/game', function(req, res) {
     let closestCoordinate;
     for (const polygon of streetPolygons) {
         for (const coordinate of polygon.coordinates) {
-            const distance = haversine(currentGuess, coordinate);
+            const distance = Math.round(haversine(currentGuess, coordinate));
             console.log(distance);
             if (shortestDistance !== undefined) {
                 if (distance < shortestDistance) {
