@@ -1,4 +1,3 @@
-const path = require('path');
 const express = require('express');
 const bodyParser = require('body-parser');
 const session = require('express-session');
@@ -163,7 +162,7 @@ function getRandomName() {
     return uniqueNamesGenerator({ dictionaries: [adjectives, animals] });
 }
 
-app.use('/icons', express.static(path.join(__dirname, 'node_modules/feather-icons/dist')))
-app.use('/map', express.static(path.join(__dirname, 'node_modules/leaflet/dist')))
+app.use('/icons', express.static('node_modules/feather-icons/dist'));
+app.use('/map', express.static('node_modules/leaflet/dist'));
 
 app.use(express.static('public'));
