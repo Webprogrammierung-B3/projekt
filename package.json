@@ -24,6 +24,7 @@
     "feather-icons": "^4.28.0",
     "haversine-distance": "^1.2.1",
     "hbs": "^4.1.1",
+    "leaflet": "^1.7.1",
     "unique-names-generator": "^4.4.0",
     "uuidv4": "^6.2.6"
   }

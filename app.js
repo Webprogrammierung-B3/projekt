@@ -164,5 +164,6 @@ function getRandomName() {
 }
 
 app.use('/icons', express.static(path.join(__dirname, 'node_modules/feather-icons/dist')))
+app.use('/map', express.static(path.join(__dirname, 'node_modules/leaflet/dist')))
 
 app.use(express.static('public'));
