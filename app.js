@@ -141,6 +141,7 @@ app.post('/api/game', function(req, res) {
         streetName: currentGame.rounds[currentRoundIndex].streetName,
         streetPolygons,
         closestCoordinate,
+        distance: shortestDistance,
         newPoints: currentGame.rounds[currentRoundIndex].points,
         currentPoints,
         round: currentRoundIndex + 1,

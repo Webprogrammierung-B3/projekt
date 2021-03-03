@@ -10,7 +10,16 @@
 
 <div id="map"></div>
 <footer>
-    <div class="game__streetname-box"><div class="game__streetname"><div>Gesuchte Straße:</div><div class="streetname js--streetname"></div></div></div>
+    <div class="game__streetname-box">
+        <div class="game__streetname">
+            <div>Gesuchte Straße:</div>
+            <div class="streetname js--streetname"></div>
+            <div class="js--result hidden">
+                Points: +<span class="footer__number js--score"></span>
+                Distance: <span class="footer__number js--distance"></span> m
+            </div>
+        </div>
+    </div>
     <div class="footer__data">
         <div>Punkte: <span class="js--points footer__number">0</span></div>
         <div>Runde: <span class="js--round footer__number">0</span>/<span class="js--round-total">0</span></div>
@@ -24,6 +33,13 @@
     const submitButton = document.querySelector('.js--submit');
     const nextButton = document.querySelector('.js--next');
     const loadingButton = document.querySelector('.js--loading');
+    const streetNameElement = document.querySelector('.js--streetname');
+    const pointsElement = document.querySelector('.js--points');
+    const roundElement = document.querySelector('.js--round');
+    const roundTotalElement = document.querySelector('.js--round-total');
+    const resultElement = document.querySelector('.js--result');
+    const scoreElement = document.querySelector('.js--score');
+    const distanceElement = document.querySelector('.js--distance');
     const cornerTopLeft = L.latLng(52.673639351743326, 13.019099490676352);
     const cornerBottomRight = L.latLng(52.34254034713163, 13.766007272821431);
     const bounds = L.latLngBounds(cornerTopLeft, cornerBottomRight);
@@ -58,11 +74,12 @@
             map.removeLayer(element);
         }
         fetch('/api/game').then(response => response.json()).then(json => {
-            document.querySelector('.js--streetname').innerText = json.streetName;
-            document.querySelector('.js--points').innerText = json.currentPoints;
-            document.querySelector('.js--round').innerText = json.round;
-            document.querySelector('.js--round-total').innerText = json.totalRounds;
+            streetNameElement.innerText = json.streetName;
+            pointsElement.innerText = json.currentPoints;
+            roundElement.innerText = json.round;
+            roundTotalElement.innerText = json.totalRounds;
             loadingButton.classList.add('hidden');
+            resultElement.classList.add('hidden');
             canMakeNewGuess = true;
         })
     }
@@ -78,11 +95,15 @@
             },
             body: JSON.stringify(currentGuess._latlng)
         }).then(response => response.json()).then(json => {
-            document.querySelector('.js--streetname').innerText = json.streetName;
-            document.querySelector('.js--points').innerText = json.currentPoints;
-            document.querySelector('.js--round').innerText = json.round;
-            document.querySelector('.js--round-total').innerText = json.totalRounds;
+            streetNameElement.innerText = json.streetName;
+            pointsElement.innerText = json.currentPoints;
+            roundElement.innerText = json.round;
+            roundTotalElement.innerText = json.totalRounds;
+            resultElement.classList.remove('hidden');
+            scoreElement.innerText = json.newPoints;
+            distanceElement.innerText = json.distance;
 
+            console.log(JSON.stringify(json.streetPolygons))
             const geoJson = L.geoJson(json.streetPolygons, {
                 "color": "#ff7800",
                 "weight": 5,
@@ -91,7 +112,6 @@
             geoJson.addTo(map);
             roundElements.push(geoJson);
 
-            console.log(json.closestCoordinate);
             const marker = L.marker([json.closestCoordinate[1], json.closestCoordinate[0]]);
             marker.addTo(map);
             roundElements.push(marker);
