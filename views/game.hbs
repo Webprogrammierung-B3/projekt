@@ -99,7 +99,6 @@
             scoreElement.innerText = json.newPoints;
             distanceElement.innerText = json.distance;
 
-            console.log(JSON.stringify(json.streetPolygons))
             const geoJson = L.geoJson(json.streetPolygons, {
                 color: '#ff7800',
                 weight: 5,
@@ -108,7 +107,7 @@
             geoJson.addTo(map);
             roundElements.push(geoJson);
 
-            const marker = L.marker([json.closestCoordinate[1], json.closestCoordinate[0]]);
+            const marker = L.marker([json.closestCoordinate.lat, json.closestCoordinate.lng]);
             marker.addTo(map);
             roundElements.push(marker);
             loadingButton.classList.add('hidden');
@@ -116,15 +115,12 @@
         })
     }
     fetch('/berlin.geo.json').then(res => res.json()).then(json => {
-        console.log(1)
         const geoJson = L.geoJSON(json, {
             color: '#ff7800',
             weight: 3,
             fill: false
         });
         geoJson.addTo(map);
-        console.log(1)
-
     })
     getNextRound();
 </script>

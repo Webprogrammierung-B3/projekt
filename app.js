@@ -3,7 +3,7 @@ const bodyParser = require('body-parser');
 const session = require('express-session');
 const hbs = require('hbs');
 const streets = require('./data/dist/result.min.json');
-const haversine = require('haversine-distance');
+const turf = require('@turf/turf');
 const { uuid } = require('uuidv4');
 const { uniqueNamesGenerator, adjectives, animals } = require('unique-names-generator');
 const streetNames = Object.keys(streets);
@@ -113,25 +113,36 @@ app.post('/api/game', function(req, res) {
     const currentRoundIndex = currentGame.rounds.length - 1;
     currentGame.rounds[currentRoundIndex].guess = currentGuess;
     const streetPolygons = streets[currentGame.rounds[currentRoundIndex].streetName];
-
+    const point = turf.point([currentGuess.lng, currentGuess.lat]);
     let shortestDistance;
     let closestCoordinate;
     for (const polygon of streetPolygons) {
-        for (const coordinate of polygon.coordinates) {
-            const distance = Math.round(haversine(currentGuess, coordinate));
-            if (shortestDistance !== undefined) {
-                if (distance < shortestDistance) {
-                    shortestDistance = distance;
-                    closestCoordinate = coordinate;
-                }
-            } else {
+        const line = turf.lineString(polygon.coordinates);
+        const distance = Math.round(turf.pointToLineDistance(point, line) * 1000);
+        const turfCoordinate = turf.nearestPointOnLine(line, point);
+        const coordinate = { lng: turfCoordinate.geometry.coordinates[0], lat: turfCoordinate.geometry.coordinates[1] };
+        if (shortestDistance !== undefined) {
+            if (distance < shortestDistance) {
                 shortestDistance = distance;
                 closestCoordinate = coordinate;
             }
+        } else {
+            shortestDistance = distance;
+            closestCoordinate = coordinate;
         }
     }
     currentGame.rounds[currentRoundIndex].distance = shortestDistance;
-    currentGame.rounds[currentRoundIndex].points = shortestDistance;
+    let newPoints = 0;
+    if (shortestDistance < 10025) {
+        if (shortestDistance < 25) {
+            newPoints = 200;
+        } else {
+            const temp = shortestDistance - 25;
+            const percentage = 1 - temp / 20000;
+            newPoints = Math.round(percentage * 200);
+        }
+    }
+    currentGame.rounds[currentRoundIndex].points = newPoints;
     let currentPoints = 0;
     for (const round of currentGame.rounds) {
         currentPoints += round.points;
@@ -141,7 +152,7 @@ app.post('/api/game', function(req, res) {
         streetPolygons,
         closestCoordinate,
         distance: shortestDistance,
-        newPoints: currentGame.rounds[currentRoundIndex].points,
+        newPoints,
         currentPoints,
         round: currentRoundIndex + 1,
         totalRounds: MAX_ROUNDS
