@@ -38,10 +38,10 @@
     const distanceElement = document.querySelector('.js--distance');
     const cornerTopLeft = L.latLng(52.673639351743326, 13.019099490676352);
     const cornerBottomRight = L.latLng(52.34254034713163, 13.766007272821431);
-    const bounds = L.latLngBounds(cornerTopLeft, cornerBottomRight);
+    const initialBounds = L.latLngBounds(cornerTopLeft, cornerBottomRight);
     const map = L.map('map', { minZoom: 10,
-        maxBoundsViscosity: 1.0 }).fitBounds([[52.673639351743326, 13.019099490676352], [52.34254034713163, 13.766007272821431]], 11);
-    map.setMaxBounds(bounds)
+        maxBoundsViscosity: 1.0 }).fitBounds(initialBounds, 11);
+    map.setMaxBounds(initialBounds)
     let currentGuess;
     map.on('click', function(e) {
         if (canMakeNewGuess) {
@@ -112,6 +112,7 @@
             roundElements.push(marker);
             loadingButton.classList.add('hidden');
             nextButton.classList.remove('hidden');
+            map.fitBounds(json.bounds);
         })
     }
     fetch('/berlin.geo.json').then(res => res.json()).then(json => {

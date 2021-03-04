@@ -109,10 +109,50 @@ app.get('/api/game', function(req, res) {
 
 app.post('/api/game', function(req, res) {
     const currentGame = req.session.currentGame;
-    const currentGuess = req.body;
     const currentRoundIndex = currentGame.rounds.length - 1;
-    currentGame.rounds[currentRoundIndex].guess = currentGuess;
-    const streetPolygons = streets[currentGame.rounds[currentRoundIndex].streetName];
+    const currentRound = currentGame.rounds[currentRoundIndex];
+    const currentGuess = req.body;
+    currentRound.guess = currentGuess;
+    const streetPolygons = streets[currentRound.streetName];
+    const closestCoordinate = getShortestCoordinateDistance(currentGuess, streetPolygons);
+    currentRound.distance = closestCoordinate.distance;
+    const bounds = calcBounds(currentGuess, streetPolygons);
+    console.log(bounds)
+    currentRound.bounds = bounds;
+    const newPoints = calcScore(closestCoordinate.distance);
+    currentRound.points = newPoints;
+    let currentPoints = 0;
+    for (const round of currentGame.rounds) {
+        currentPoints += round.points;
+    }
+    const responseJson = {
+        streetName: currentRound.streetName,
+        streetPolygons,
+        closestCoordinate: closestCoordinate.lnglat,
+        distance: closestCoordinate.distance,
+        newPoints,
+        currentPoints,
+        round: currentRoundIndex + 1,
+        totalRounds: MAX_ROUNDS,
+        bounds
+    };
+
+    if (currentRoundIndex + 1 === MAX_ROUNDS) {
+        const id = uuid();
+        currentGame.id = id;
+        GAMES[id] = currentGame;
+        req.session.currentGame = undefined;
+        responseJson.newGame = true;
+    }
+
+    res.send(responseJson)
+});
+
+function getRandomName() {
+    return uniqueNamesGenerator({ dictionaries: [adjectives, animals] });
+}
+
+function getShortestCoordinateDistance(currentGuess, streetPolygons) {
     const point = turf.point([currentGuess.lng, currentGuess.lat]);
     let shortestDistance;
     let closestCoordinate;
@@ -131,46 +171,42 @@ app.post('/api/game', function(req, res) {
             closestCoordinate = coordinate;
         }
     }
-    currentGame.rounds[currentRoundIndex].distance = shortestDistance;
+    return {
+        distance: shortestDistance,
+        lnglat: closestCoordinate
+    }
+}
+
+function calcScore(distance) {
     let newPoints = 0;
-    if (shortestDistance < 10025) {
-        if (shortestDistance < 25) {
+    if (distance < 10025) {
+        if (distance < 25) {
             newPoints = 200;
         } else {
-            const temp = shortestDistance - 25;
+            const temp = distance - 25;
             const percentage = 1 - temp / 20000;
             newPoints = Math.round(percentage * 200);
         }
     }
-    currentGame.rounds[currentRoundIndex].points = newPoints;
-    let currentPoints = 0;
-    for (const round of currentGame.rounds) {
-        currentPoints += round.points;
+    return newPoints;
+}
+
+function calcBounds(currentGuess, streetPolygons) {
+    console.log(currentGuess)
+    const latValues = []
+    for (const element of streetPolygons) {
+        console.log(element.coordinates)
+        latValues.push(...element.coordinates.map(e => e[1]))
     }
-    const responseJson = {
-        streetName: currentGame.rounds[currentRoundIndex].streetName,
-        streetPolygons,
-        closestCoordinate,
-        distance: shortestDistance,
-        newPoints,
-        currentPoints,
-        round: currentRoundIndex + 1,
-        totalRounds: MAX_ROUNDS
-    };
-
-    if (currentRoundIndex + 1 === MAX_ROUNDS) {
-        const id = uuid();
-        currentGame.id = id;
-        GAMES[id] = currentGame;
-        req.session.currentGame = undefined;
-        responseJson.newGame = true;
+    const left = Math.min(...latValues, currentGuess.lat);
+    const right = Math.max(...latValues, currentGuess.lat);
+    const lngValues = []
+    for (const element of streetPolygons) {
+        lngValues.push(...element.coordinates.map(e => e[0]))
     }
-
-    res.send(responseJson)
-});
-
-function getRandomName() {
-    return uniqueNamesGenerator({ dictionaries: [adjectives, animals] });
+    const bottom = Math.min(...lngValues, currentGuess.lng);
+    const top = Math.max(...lngValues, currentGuess.lng);
+    return [[right, top], [left, bottom]];
 }
 
 app.use('/icons', express.static('node_modules/feather-icons/dist'));
