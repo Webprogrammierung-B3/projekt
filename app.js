@@ -108,16 +108,20 @@ app.get('/api/game', function(req, res) {
 });
 
 app.post('/api/game', function(req, res) {
+    const body = req.body;
+    if (Object.keys(body).length !== 2 || typeof body.lat !== 'number' || typeof body.lat !== 'number') {
+        res.sendStatus(400);
+        return;
+    }
     const currentGame = req.session.currentGame;
     const currentRoundIndex = currentGame.rounds.length - 1;
     const currentRound = currentGame.rounds[currentRoundIndex];
-    const currentGuess = req.body;
+    const currentGuess = body;
     currentRound.guess = currentGuess;
     const streetPolygons = streets[currentRound.streetName];
     const closestCoordinate = getShortestCoordinateDistance(currentGuess, streetPolygons);
     currentRound.distance = closestCoordinate.distance;
     const bounds = calcBounds(currentGuess, streetPolygons);
-    console.log(bounds)
     currentRound.bounds = bounds;
     const newPoints = calcScore(closestCoordinate.distance);
     currentRound.points = newPoints;
@@ -125,6 +129,7 @@ app.post('/api/game', function(req, res) {
     for (const round of currentGame.rounds) {
         currentPoints += round.points;
     }
+    const line = [[currentGuess.lat, currentGuess.lng], [closestCoordinate.lnglat.lat, closestCoordinate.lnglat.lng]]
     const responseJson = {
         streetName: currentRound.streetName,
         streetPolygons,
@@ -134,7 +139,8 @@ app.post('/api/game', function(req, res) {
         currentPoints,
         round: currentRoundIndex + 1,
         totalRounds: MAX_ROUNDS,
-        bounds
+        bounds,
+        line
     };
 
     if (currentRoundIndex + 1 === MAX_ROUNDS) {
@@ -192,10 +198,8 @@ function calcScore(distance) {
 }
 
 function calcBounds(currentGuess, streetPolygons) {
-    console.log(currentGuess)
     const latValues = []
     for (const element of streetPolygons) {
-        console.log(element.coordinates)
         latValues.push(...element.coordinates.map(e => e[1]))
     }
     const left = Math.min(...latValues, currentGuess.lat);

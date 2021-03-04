@@ -99,6 +99,13 @@
             scoreElement.innerText = json.newPoints;
             distanceElement.innerText = json.distance;
 
+            const line = L.polyline(json.line, {
+                color: '#00ff00',
+                dashArray: '10 20'
+            });
+            line.addTo(map);
+            roundElements.push(line);
+
             const geoJson = L.geoJson(json.streetPolygons, {
                 color: '#ff7800',
                 weight: 5,
