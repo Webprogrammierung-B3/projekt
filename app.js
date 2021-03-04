@@ -85,23 +85,19 @@ app.get('/api/game', function(req, res) {
             rounds: [],
         }
     }
-    let currentPoints = 0;
-    for (const round of req.session.currentGame.rounds) {
-        if (round.points !== undefined) {
-            currentPoints += round.points;
-        }
-    }
-    const currentRoundIndex = req.session.currentGame.rounds.length - 1;
-    if (currentRoundIndex >= 0 && req.session.currentGame.rounds[currentRoundIndex].guess === undefined) {
-        streetName = req.session.currentGame.rounds[currentRoundIndex].streetName;
+    const currentGame = req.session.currentGame;
+    const currentPoints = currentGame.rounds.reduce((total, round) => round.points !== undefined ? total + round.points : total, 0);
+    const currentRoundIndex = currentGame.rounds.length - 1;
+    if (currentRoundIndex >= 0 && currentGame.rounds[currentRoundIndex].guess === undefined) {
+        streetName = currentGame.rounds[currentRoundIndex].streetName;
     } else {
         streetName = getRandomStreet();
-        req.session.currentGame.rounds.push({streetName});
+        currentGame.rounds.push({streetName});
     }
     const responseJson = {
         streetName,
         currentPoints,
-        round: req.session.currentGame.rounds.length,
+        round: currentGame.rounds.length,
         totalRounds: MAX_ROUNDS
     };
     res.send(responseJson);
@@ -125,10 +121,7 @@ app.post('/api/game', function(req, res) {
     currentRound.bounds = bounds;
     const newPoints = calcScore(closestCoordinate.distance);
     currentRound.points = newPoints;
-    let currentPoints = 0;
-    for (const round of currentGame.rounds) {
-        currentPoints += round.points;
-    }
+    const currentPoints = currentGame.rounds.reduce((total, round) => total + round.points, 0);
     const line = [[currentGuess.lat, currentGuess.lng], [closestCoordinate.lnglat.lat, closestCoordinate.lnglat.lng]]
     const responseJson = {
         streetName: currentRound.streetName,
@@ -146,6 +139,8 @@ app.post('/api/game', function(req, res) {
     if (currentRoundIndex + 1 === MAX_ROUNDS) {
         const id = uuid();
         currentGame.id = id;
+        currentGame.points = currentPoints;
+        currentGame.username = req.session.username;
         GAMES[id] = currentGame;
         req.session.currentGame = undefined;
         responseJson.newGame = true;
