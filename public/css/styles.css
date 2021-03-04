@@ -14,9 +14,11 @@ header {
     justify-content: space-between;
 }
 
-.header__body > div {
+.header__link {
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
+    text-decoration: none;
+    color: black;
 }
 
 .header__title {

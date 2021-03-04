@@ -11,10 +11,10 @@
 <body>
 <header>
     <div class="header__body">
-        <div>
-            <i data-feather="chevron-left"></i>
+        <a class="header__link" href="index.html">
+            {{#if back}}<i data-feather="chevron-left"></i>{{/if}}
             <span class="header__title">Guess it's Berlin?!</span>
-        </div>
+        </a>
         <span>{{ username }}</span>
     </div>
 </header>

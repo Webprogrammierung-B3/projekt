@@ -59,23 +59,23 @@ app.get('/', function(req, res) {
 })
 
 app.get('/index.html', function(req, res) {
-    res.render('index', { username: req.session.username, layout: 'layout.hbs', games: Object.values(GAMES)})
+    res.render('index', { username: req.session.username, back: false, layout: 'layout.hbs', games: Object.values(GAMES)})
 });
 
 app.get('/highscore.html', function(req, res) {
-    res.render('highscore', { username: req.session.username, layout: 'layout.hbs' })
+    res.render('highscore', { username: req.session.username, back: true, layout: 'layout.hbs' })
 });
 
 app.get('/howto.html', function(req, res) {
-    res.render('howto', { username: req.session.username, layout: 'layout.hbs' })
+    res.render('howto', { username: req.session.username, back: true, layout: 'layout.hbs' })
 });
 
 app.get('/register.html', function(req, res) {
-    res.render('register', { username: req.session.username, layout: 'layout.hbs' })
+    res.render('register', { username: req.session.username, back: true, layout: 'layout.hbs' })
 });
 
 app.get('/game.html', function(req, res) {
-    res.render('game', { username: req.session.username, layout: 'layout.hbs' })
+    res.render('game', { username: req.session.username, back: true, layout: 'layout.hbs' })
 });
 
 app.get('/api/game', function(req, res) {
