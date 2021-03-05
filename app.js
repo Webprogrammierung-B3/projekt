@@ -6,11 +6,27 @@ const streets = require('./data/dist/result.min.json');
 const turf = require('@turf/turf');
 const { uuid } = require('uuidv4');
 const MongoStore = require('connect-mongo').default;
+const MongoClient = require('mongodb').MongoClient;
 const { uniqueNamesGenerator, adjectives, animals } = require('unique-names-generator');
 const streetNames = Object.keys(streets);
 const len = streetNames.length;
 const app = express();
 const port = 8080;
+const url = 'mongodb://localhost:27017/';
+const dbName = 'guess-its';
+let db;
+let gameCollection;
+
+MongoClient.connect(url, function(err, client) {
+    if (err) {
+        throw err
+    }
+    console.log("Connected successfully to server");
+
+    db = client.db(dbName);
+    gameCollection = db.collection('games');
+});
+
 app.set('view engine', 'hbs');
 app.use(session({
     secret: 'keyboard cat',
@@ -18,14 +34,13 @@ app.use(session({
     saveUninitialized: true,
     cookie: { secure: false },
     store: MongoStore.create({
-        mongoUrl: 'mongodb://localhost/guess-its'
+        mongoUrl: url + dbName
     })
 }))
 app.use(bodyParser.json());
 
 const blocks = {};
 const MAX_ROUNDS = 5;
-const GAMES = {};
 
 function getRandomStreet() {
     return streetNames[Math.floor(Math.random() * len)];
@@ -63,7 +78,10 @@ app.get('/', function(req, res) {
 })
 
 app.get('/index.html', function(req, res) {
-    res.render('index', { username: req.session.username, back: false, layout: 'layout.hbs', games: Object.values(GAMES)})
+    gameCollection.find({}).toArray((err, docs) => {
+        if (err) { throw err }
+        res.render('index', { username: req.session.username, back: false, layout: 'layout.hbs', games: docs})
+    })
 });
 
 app.get('/highscore.html', function(req, res) {
@@ -145,6 +163,9 @@ app.post('/api/game', function(req, res) {
         currentGame.id = id;
         currentGame.points = currentPoints;
         currentGame.username = req.session.username;
+
+        gameCollection.insertOne(currentGame);
+
         GAMES[id] = currentGame;
         req.session.currentGame = undefined;
         responseJson.newGame = true;

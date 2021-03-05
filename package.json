@@ -26,6 +26,7 @@
     "feather-icons": "^4.28.0",
     "hbs": "^4.1.1",
     "leaflet": "^1.7.1",
+    "mongodb": "^3.6.4",
     "unique-names-generator": "^4.4.0",
     "uuidv4": "^6.2.6"
   }
