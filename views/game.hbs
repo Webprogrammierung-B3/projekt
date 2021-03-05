@@ -1,40 +1,58 @@
 {{#extend "header"}}
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
-          integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
-          crossorigin=""/>
-    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
-            integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
-            crossorigin=""></script>
-    <style>
-        #map {
-            width: 80%;
-            height: 600px;
-        }
-    </style>
+    <link rel="stylesheet" href="map/leaflet.css">
+    <script src="map/leaflet.js"></script>
+    <link rel="stylesheet" href="css/game.css">
 {{/extend}}
 
 <div id="map"></div>
-<div>Gesuchter Straßenname: <span class="js--streetname"></span></div>
-<div>Deine Punkte: <span class="js--points"></span></div>
-<div>Runde <span class="js--round"></span> von <span class="js--round-total"></span></div>
-<button onclick="submitGuess()">Submit</button>
-<button onclick="getNextRound()">next round</button>
+<footer>
+    <div class="game__streetname-box">
+        <div class="game__streetname">
+            <div>Gesuchte Straße:</div>
+            <div class="streetname js--streetname"></div>
+            <div class="js--result hidden">
+                +<span class="footer__number js--score"></span> Punkte
+                (<span class="footer__number js--distance"></span>m)
+            </div>
+        </div>
+    </div>
+    <div class="footer__data">
+        <div>Punkte: <span class="js--points footer__number">0</span></div>
+        <div>Runde: <span class="js--round footer__number">0</span>/<span class="js--round-total">0</span></div>
+    </div>
+    <button class="game__submit js--submit hidden" onclick="submitGuess()">Submit your guess!</button>
+    <button class="game__submit js--next hidden" onclick="getNextRound()">Next round!</button>
+    <button class="game__submit js--loading hidden" disabled>Loading...</button>
+</footer>
 <script>
+    let canMakeNewGuess = true;
+    const submitButton = document.querySelector('.js--submit');
+    const nextButton = document.querySelector('.js--next');
+    const loadingButton = document.querySelector('.js--loading');
+    const streetNameElement = document.querySelector('.js--streetname');
+    const pointsElement = document.querySelector('.js--points');
+    const roundElement = document.querySelector('.js--round');
+    const roundTotalElement = document.querySelector('.js--round-total');
+    const resultElement = document.querySelector('.js--result');
+    const scoreElement = document.querySelector('.js--score');
+    const distanceElement = document.querySelector('.js--distance');
     const cornerTopLeft = L.latLng(52.673639351743326, 13.019099490676352);
     const cornerBottomRight = L.latLng(52.34254034713163, 13.766007272821431);
-    const bounds = L.latLngBounds(cornerTopLeft, cornerBottomRight);
-    const map = L.map('map', { minZoom: 11,
-        maxBoundsViscosity: 1.0 }).fitBounds([[52.673639351743326, 13.019099490676352], [52.34254034713163, 13.766007272821431]], 11);
-    map.setMaxBounds(bounds)
+    const initialBounds = L.latLngBounds(cornerTopLeft, cornerBottomRight);
+    const map = L.map('map', { minZoom: 10,
+        maxBoundsViscosity: 1.0 }).fitBounds(initialBounds, 11);
+    map.setMaxBounds(initialBounds)
     let currentGuess;
     map.on('click', function(e) {
-        console.log(e.latlng);
-        if (currentGuess !== undefined) {
-            map.removeLayer(currentGuess);
+        if (canMakeNewGuess) {
+            if (currentGuess !== undefined) {
+                map.removeLayer(currentGuess);
+            }
+            const marker = L.marker([e.latlng.lat,e.latlng.lng]);
+            currentGuess = marker;
+            marker.addTo(map);
+            submitButton.classList.remove('hidden');
         }
-        const marker = L.marker([e.latlng.lat,e.latlng.lng]);
-        currentGuess = marker;
-        marker.addTo(map);
     });
     L.tileLayer('https://tiles.wmflabs.org/osm-no-labels/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -43,6 +61,8 @@
     const roundElements = [];
 
     function getNextRound() {
+        nextButton.classList.add('hidden');
+        loadingButton.classList.remove('hidden');
         if (currentGuess !== undefined) {
             map.removeLayer(currentGuess);
         }
@@ -50,14 +70,19 @@
             map.removeLayer(element);
         }
         fetch('/api/game').then(response => response.json()).then(json => {
-            document.querySelector('.js--streetname').innerText = json.streetName;
-            document.querySelector('.js--points').innerText = json.currentPoints;
-            document.querySelector('.js--round').innerText = json.round;
-            document.querySelector('.js--round-total').innerText = json.totalRounds;
+            streetNameElement.innerText = json.streetName;
+            pointsElement.innerText = json.currentPoints;
+            roundElement.innerText = json.round;
+            roundTotalElement.innerText = json.totalRounds;
+            loadingButton.classList.add('hidden');
+            resultElement.classList.add('hidden');
+            canMakeNewGuess = true;
         })
     }
     function submitGuess() {
-        console.log(currentGuess._latlng);
+        canMakeNewGuess = false;
+        submitButton.classList.add('hidden');
+        loadingButton.classList.remove('hidden');
         fetch('/api/game', {
             method: 'POST',
             headers: {
@@ -66,24 +91,44 @@
             },
             body: JSON.stringify(currentGuess._latlng)
         }).then(response => response.json()).then(json => {
-            document.querySelector('.js--streetname').innerText = json.streetName;
-            document.querySelector('.js--points').innerText = json.currentPoints;
-            document.querySelector('.js--round').innerText = json.round;
-            document.querySelector('.js--round-total').innerText = json.totalRounds;
+            streetNameElement.innerText = json.streetName;
+            pointsElement.innerText = json.currentPoints;
+            roundElement.innerText = json.round;
+            roundTotalElement.innerText = json.totalRounds;
+            resultElement.classList.remove('hidden');
+            scoreElement.innerText = json.newPoints;
+            distanceElement.innerText = json.distance;
+
+            const line = L.polyline(json.line, {
+                color: '#00ff00',
+                dashArray: '10 20'
+            });
+            line.addTo(map);
+            roundElements.push(line);
 
             const geoJson = L.geoJson(json.streetPolygons, {
-                "color": "#ff7800",
-                "weight": 5,
-                "opacity": 0.65
+                color: '#ff7800',
+                weight: 5,
+                opacity: 0.65
             });
             geoJson.addTo(map);
             roundElements.push(geoJson);
 
-            console.log(json.closestCoordinate);
-            const marker = L.marker([json.closestCoordinate[1], json.closestCoordinate[0]]);
+            const marker = L.marker([json.closestCoordinate.lat, json.closestCoordinate.lng]);
             marker.addTo(map);
             roundElements.push(marker);
+            loadingButton.classList.add('hidden');
+            nextButton.classList.remove('hidden');
+            map.fitBounds(json.bounds);
         })
     }
+    fetch('/berlin.geo.json').then(res => res.json()).then(json => {
+        const geoJson = L.geoJSON(json, {
+            color: '#ff7800',
+            weight: 3,
+            fill: false
+        });
+        geoJson.addTo(map);
+    })
     getNextRound();
 </script>

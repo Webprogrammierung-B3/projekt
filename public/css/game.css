@@ -1,0 +1,62 @@
+body {
+    height: 100vh;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    grid-template-columns: 1fr;
+}
+
+#map {
+    cursor: pointer;
+}
+
+footer {
+    display: flex;
+    justify-content: space-between;
+    position: relative;
+    background-color: #5e565a;
+    color: white;
+}
+
+.game__streetname-box {
+    opacity: 0.75;
+    position: absolute;
+    width: 100%;
+    z-index: 2000;
+    bottom: 6rem;
+    display: flex;
+    color: black;
+    justify-content: center;
+}
+
+.game__streetname {
+    text-align: center;
+    background: white;
+    max-width: 75%;
+    padding: 0.5rem;
+    border-radius: 0.25rem;
+}
+
+.streetname {
+    font-weight: bold;
+}
+
+.footer__data {
+    padding: 0.5rem;
+}
+
+.footer__number {
+    font-weight: bold;
+}
+
+.game__submit {
+    border: 0;
+    text-align: center;
+    color: black;
+    background-color: #ff934f;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.hidden {
+    display: none;
+}

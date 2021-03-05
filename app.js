@@ -3,9 +3,9 @@ const bodyParser = require('body-parser');
 const session = require('express-session');
 const hbs = require('hbs');
 const streets = require('./data/dist/result.min.json');
-const haversine = require('haversine-distance');
-const {uuid} = require('uuidv4');
-const { uniqueNamesGenerator, adjectives, colors, animals } = require('unique-names-generator');
+const turf = require('@turf/turf');
+const { uuid } = require('uuidv4');
+const { uniqueNamesGenerator, adjectives, animals } = require('unique-names-generator');
 const streetNames = Object.keys(streets);
 const len = streetNames.length;
 const app = express();
@@ -32,14 +32,11 @@ hbs.registerHelper('extend', function(name, context) {
     if (!block) {
         block = blocks[name] = [];
     }
-
-    block.push(context.fn(this)); // for older versions of handlebars, use block.push(context(this));
+    block.push(context.fn(this));
 });
 
 hbs.registerHelper('block', function(name) {
     const val = (blocks[name] || []).join('\n');
-
-    // clear the block
     blocks[name] = [];
     return val;
 });
@@ -49,7 +46,6 @@ app.listen(port, () => {
 });
 
 app.get('*.html', function(req, res, next) {
-    console.log(req.session.username)
     if (req.session.username) {
         next();
     } else {
@@ -63,103 +59,156 @@ app.get('/', function(req, res) {
 })
 
 app.get('/index.html', function(req, res) {
-    console.log(GAMES)
-    res.render('index', { username: req.session.username, layout: 'layout.hbs', games: Object.values(GAMES)})
+    res.render('index', { username: req.session.username, back: false, layout: 'layout.hbs', games: Object.values(GAMES)})
 });
 
 app.get('/highscore.html', function(req, res) {
-    res.render('highscore', { username: req.session.username, layout: 'layout.hbs' })
+    res.render('highscore', { username: req.session.username, back: true, layout: 'layout.hbs' })
 });
 
 app.get('/howto.html', function(req, res) {
-    res.render('howto', { username: req.session.username, layout: 'layout.hbs' })
+    res.render('howto', { username: req.session.username, back: true, layout: 'layout.hbs' })
 });
 
 app.get('/register.html', function(req, res) {
-    res.render('register', { username: req.session.username, layout: 'layout.hbs' })
+    res.render('register', { username: req.session.username, back: true, layout: 'layout.hbs' })
 });
 
 app.get('/game.html', function(req, res) {
-    res.render('game', { username: req.session.username, layout: 'layout.hbs' })
+    res.render('game', { username: req.session.username, back: true, layout: 'layout.hbs' })
 });
 
 app.get('/api/game', function(req, res) {
-    const streetName = getRandomStreet();
+    let streetName;
     if (req.session.currentGame === undefined) {
         req.session.currentGame = {
             rounds: [],
         }
     }
-    let currentPoints = 0;
-    for (const round of req.session.currentGame.rounds) {
-        currentPoints += round.points;
+    const currentGame = req.session.currentGame;
+    const currentPoints = currentGame.rounds.reduce((total, round) => round.points !== undefined ? total + round.points : total, 0);
+    const currentRoundIndex = currentGame.rounds.length - 1;
+    if (currentRoundIndex >= 0 && currentGame.rounds[currentRoundIndex].guess === undefined) {
+        streetName = currentGame.rounds[currentRoundIndex].streetName;
+    } else {
+        streetName = getRandomStreet();
+        currentGame.rounds.push({streetName});
     }
-    req.session.currentGame.rounds.push({streetName});
     const responseJson = {
         streetName,
         currentPoints,
-        round: req.session.currentGame.rounds.length,
+        round: currentGame.rounds.length,
         totalRounds: MAX_ROUNDS
     };
-    res.send(responseJson)
+    res.send(responseJson);
 });
 
 app.post('/api/game', function(req, res) {
-    console.log(req.body, 1);
+    const body = req.body;
+    if (Object.keys(body).length !== 2 || typeof body.lat !== 'number' || typeof body.lat !== 'number') {
+        res.sendStatus(400);
+        return;
+    }
     const currentGame = req.session.currentGame;
-    const currentGuess = req.body;
     const currentRoundIndex = currentGame.rounds.length - 1;
-    currentGame.rounds[currentRoundIndex].guess = currentGuess;
-    const streetPolygons = streets[currentGame.rounds[currentRoundIndex].streetName];
-
-    let shortestDistance;
-    let closestCoordinate;
-    for (const polygon of streetPolygons) {
-        for (const coordinate of polygon.coordinates) {
-            const distance = haversine(currentGuess, coordinate);
-            console.log(distance);
-            if (shortestDistance !== undefined) {
-                if (distance < shortestDistance) {
-                    shortestDistance = distance;
-                    closestCoordinate = coordinate;
-                }
-            } else {
-                shortestDistance = distance;
-                closestCoordinate = coordinate;
-            }
-        }
-    }
-    console.log("shortest Distance: ",shortestDistance);
-    currentGame.rounds[currentRoundIndex].distance = shortestDistance;
-    currentGame.rounds[currentRoundIndex].points = shortestDistance;
-    let currentPoints = 0;
-    for (const round of currentGame.rounds) {
-        currentPoints += round.points;
-    }
+    const currentRound = currentGame.rounds[currentRoundIndex];
+    const currentGuess = body;
+    currentRound.guess = currentGuess;
+    const streetPolygons = streets[currentRound.streetName];
+    const closestCoordinate = getShortestCoordinateDistance(currentGuess, streetPolygons);
+    currentRound.distance = closestCoordinate.distance;
+    const bounds = calcBounds(currentGuess, streetPolygons);
+    currentRound.bounds = bounds;
+    const newPoints = calcScore(closestCoordinate.distance);
+    currentRound.points = newPoints;
+    const currentPoints = currentGame.rounds.reduce((total, round) => total + round.points, 0);
+    const line = [[currentGuess.lat, currentGuess.lng], [closestCoordinate.lnglat.lat, closestCoordinate.lnglat.lng]]
     const responseJson = {
-        streetName: currentGame.rounds[currentRoundIndex].streetName,
+        streetName: currentRound.streetName,
         streetPolygons,
-        closestCoordinate,
-        newPoints: currentGame.rounds[currentRoundIndex].points,
+        closestCoordinate: closestCoordinate.lnglat,
+        distance: closestCoordinate.distance,
+        newPoints,
         currentPoints,
         round: currentRoundIndex + 1,
-        totalRounds: MAX_ROUNDS
+        totalRounds: MAX_ROUNDS,
+        bounds,
+        line
     };
 
     if (currentRoundIndex + 1 === MAX_ROUNDS) {
         const id = uuid();
         currentGame.id = id;
+        currentGame.points = currentPoints;
+        currentGame.username = req.session.username;
         GAMES[id] = currentGame;
         req.session.currentGame = undefined;
         responseJson.newGame = true;
     }
 
     res.send(responseJson)
-    console.log(req.body);
 });
 
 function getRandomName() {
-    return uniqueNamesGenerator({ dictionaries: [adjectives, colors, animals] }); // big_red_donkey
+    return uniqueNamesGenerator({ dictionaries: [adjectives, animals] });
 }
+
+function getShortestCoordinateDistance(currentGuess, streetPolygons) {
+    const point = turf.point([currentGuess.lng, currentGuess.lat]);
+    let shortestDistance;
+    let closestCoordinate;
+    for (const polygon of streetPolygons) {
+        const line = turf.lineString(polygon.coordinates);
+        const distance = Math.round(turf.pointToLineDistance(point, line) * 1000);
+        const turfCoordinate = turf.nearestPointOnLine(line, point);
+        const coordinate = { lng: turfCoordinate.geometry.coordinates[0], lat: turfCoordinate.geometry.coordinates[1] };
+        if (shortestDistance !== undefined) {
+            if (distance < shortestDistance) {
+                shortestDistance = distance;
+                closestCoordinate = coordinate;
+            }
+        } else {
+            shortestDistance = distance;
+            closestCoordinate = coordinate;
+        }
+    }
+    return {
+        distance: shortestDistance,
+        lnglat: closestCoordinate
+    }
+}
+
+function calcScore(distance) {
+    let newPoints = 0;
+    if (distance < 10025) {
+        if (distance < 25) {
+            newPoints = 200;
+        } else {
+            const temp = distance - 25;
+            const percentage = 1 - temp / 20000;
+            newPoints = Math.round(percentage * 200);
+        }
+    }
+    return newPoints;
+}
+
+function calcBounds(currentGuess, streetPolygons) {
+    const latValues = []
+    for (const element of streetPolygons) {
+        latValues.push(...element.coordinates.map(e => e[1]))
+    }
+    const left = Math.min(...latValues, currentGuess.lat);
+    const right = Math.max(...latValues, currentGuess.lat);
+    const lngValues = []
+    for (const element of streetPolygons) {
+        lngValues.push(...element.coordinates.map(e => e[0]))
+    }
+    const bottom = Math.min(...lngValues, currentGuess.lng);
+    const top = Math.max(...lngValues, currentGuess.lng);
+    return [[right, top], [left, bottom]];
+}
+
+app.use('/icons', express.static('node_modules/feather-icons/dist'));
+app.use('/map', express.static('node_modules/leaflet/dist'));
 
 app.use(express.static('public'));
