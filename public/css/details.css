@@ -1,0 +1,24 @@
+#map {
+    width: 100%;
+    height: 50vh;
+}
+
+.details__round:nth-child(even) {
+    background-color: lightgray;
+}
+
+.details__round {
+    display: grid;
+    grid-template-columns: 2fr repeat(2, 1fr);
+    padding: 0.25rem;
+ }
+
+.details__round > span {
+    text-align: right;
+}
+
+.details__round > b {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}

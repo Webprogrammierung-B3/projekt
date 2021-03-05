@@ -1,0 +1,51 @@
+{{#extend "header"}}
+    <link rel="stylesheet" href="map/leaflet.css">
+    <script src="map/leaflet.js"></script>
+    <link rel="stylesheet" href="css/details.css">
+{{/extend}}
+
+<main class="details">
+    <div>
+        <div>{{ username }}</div>
+        <div>Gesamtpunkte: {{ points }}</div>
+        <div>Favorite</div>
+    </div>
+    <div>
+        <div>
+            <div id="map"></div>
+        </div>
+        <div class="details__rounds js--rounds" data-rounds="{{ roundsJSON }}">
+            {{#each rounds}}
+            <div class="details__round">
+                <b title="{{ streetName }}">{{ streetName }}</b>
+                <span>{{ distance }}</span>
+                <span>{{ points }}</span>
+            </div>
+            {{/each}}
+        </div>
+    </div>
+</main>
+
+<script>
+    const rounds = JSON.parse(document.querySelector('.js--rounds').getAttribute('data-rounds'));
+    const mapElements = [];
+    const cornerTopLeft = L.latLng(52.673639351743326, 13.019099490676352);
+    const cornerBottomRight = L.latLng(52.34254034713163, 13.766007272821431);
+    const initialBounds = L.latLngBounds(cornerTopLeft, cornerBottomRight);
+    const map = L.map('map', { minZoom: 10,
+        maxBoundsViscosity: 1.0 }).fitBounds(initialBounds, 11);
+    map.setMaxBounds(initialBounds)
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    for (const round of rounds) {
+
+    }
+
+    function displayRound(round) {
+        const guessMarker = L.marker(round.guess);
+        guessMarker.addTo(map);
+        mapElements.push(guessMarker)
+    }
+</script>

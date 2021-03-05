@@ -97,6 +97,17 @@ app.get('/register.html', function(req, res) {
 });
 
 app.get('/game.html', function(req, res) {
+    const id = req.query.id;
+    if (id === undefined) {
+        res.redirect('/index.html');
+    }
+    gameCollection.find({ id }).toArray((err, docs) => {
+        if (err || docs.length !== 1) { res.redirect('/index.html') }
+        res.render('gameDetail', { ...docs[0], roundsJSON: JSON.stringify(docs[0].rounds), back: true, layout: 'layout.hbs' })
+    })
+});
+
+app.get('/play.html', function(req, res) {
     res.render('game', { username: req.session.username, back: true, layout: 'layout.hbs' })
 });
 
@@ -166,7 +177,6 @@ app.post('/api/game', function(req, res) {
 
         gameCollection.insertOne(currentGame);
 
-        GAMES[id] = currentGame;
         req.session.currentGame = undefined;
         responseJson.newGame = true;
     }
