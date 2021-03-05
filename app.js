@@ -5,6 +5,7 @@ const hbs = require('hbs');
 const streets = require('./data/dist/result.min.json');
 const turf = require('@turf/turf');
 const { uuid } = require('uuidv4');
+const MongoStore = require('connect-mongo').default;
 const { uniqueNamesGenerator, adjectives, animals } = require('unique-names-generator');
 const streetNames = Object.keys(streets);
 const len = streetNames.length;
@@ -15,7 +16,10 @@ app.use(session({
     secret: 'keyboard cat',
     resave: false,
     saveUninitialized: true,
-    cookie: { secure: false }
+    cookie: { secure: false },
+    store: MongoStore.create({
+        mongoUrl: 'mongodb://localhost/guess-its'
+    })
 }))
 app.use(bodyParser.json());
 
