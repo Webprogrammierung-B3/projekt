@@ -17,7 +17,7 @@ const dbName = 'guess-its';
 let db;
 let gameCollection;
 
-MongoClient.connect(url, function(err, client) {
+MongoClient.connect(url, { useUnifiedTopology: true }, function(err, client) {
     if (err) {
         throw err
     }
