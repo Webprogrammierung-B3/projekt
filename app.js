@@ -8,6 +8,11 @@ const { uuid } = require('uuidv4');
 const MongoStore = require('connect-mongo').default;
 const MongoClient = require('mongodb').MongoClient;
 const { uniqueNamesGenerator, adjectives, animals } = require('unique-names-generator');
+const TimeAgo = require('javascript-time-ago');
+const deLocaleTimeAgo = require('javascript-time-ago/locale/de');
+TimeAgo.addLocale(deLocaleTimeAgo);
+TimeAgo.setDefaultLocale('de');
+const timeAgo = new TimeAgo('de-DE');
 const streetNames = Object.keys(streets);
 const len = streetNames.length;
 const app = express();
@@ -38,6 +43,7 @@ app.use(session({
     })
 }))
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
 const blocks = {};
 const MAX_ROUNDS = 5;
@@ -107,6 +113,10 @@ app.get('/game.html', function(req, res) {
         for (const round of game.rounds) {
             round.polygons = streets[round.streetName];
         }
+        for (const comment of game.comments) {
+            comment.relativeDate = timeAgo.format(comment.date);
+        }
+        game.comments = game.comments.reverse();
         res.render('gameDetail', {
             game,
             username: req.session.username,
@@ -187,6 +197,7 @@ app.post('/api/game', function(req, res) {
         currentGame.points = currentPoints;
         currentGame.username = req.session.username;
 
+        currentGame.comments = [];
         gameCollection.insertOne(currentGame);
 
         req.session.currentGame = undefined;
@@ -194,6 +205,15 @@ app.post('/api/game', function(req, res) {
     }
 
     res.send(responseJson)
+});
+
+app.post('/game.html', (req, res) => {
+    const gameId = req.body.id;
+    const content = req.body.content;
+    const username = req.session.username;
+    const date = new Date();
+    gameCollection.updateOne({ id: gameId }, { $push: { comments: { content, username, date } } });
+    res.redirect(`/game.html?id=${gameId}`);
 });
 
 function getRandomName() {

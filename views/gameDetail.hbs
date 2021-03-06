@@ -24,6 +24,26 @@
             {{/each}}
         </div>
     </div>
+    <div>
+        <h2>Kommentare:</h2>
+        <form method="POST">
+            <input type="hidden" value="{{ game.id }}" name="id">
+            <label for="input-comment">Kommentieren als {{ username }}: </label>
+            <textarea id="input-comment" class="details__comment-input" rows="4" name="content"></textarea>
+            <button type="submit">Absenden</button>
+        </form>
+        <div class="comments">
+            {{#each game.comments}}
+                <div class="comment">
+                    <div class="comment__header">
+                        <b>{{ username }}:</b>
+                        <span title="{{ date }}">{{ relativeDate }}</span>
+                    </div>
+                    <div>{{ content }}</div>
+                </div>
+            {{/each}}
+        </div>
+    </div>
 </main>
 
 <script>

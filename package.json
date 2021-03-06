@@ -25,6 +25,7 @@
     "express-session": "^1.17.1",
     "feather-icons": "^4.28.0",
     "hbs": "^4.1.1",
+    "javascript-time-ago": "^2.3.4",
     "leaflet": "^1.7.1",
     "mongodb": "^3.6.4",
     "unique-names-generator": "^4.4.0",

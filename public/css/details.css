@@ -28,3 +28,21 @@
     overflow: hidden;
     text-overflow: ellipsis;
 }
+
+.details__comment-input {
+    width: 100%;
+    resize: vertical;
+}
+
+.comments {
+    margin-top: 1rem;
+}
+
+.comment {
+    margin-bottom: 1rem;
+}
+
+.comment__header {
+    display: flex;
+    justify-content: space-between;
+}
