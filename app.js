@@ -103,7 +103,17 @@ app.get('/game.html', function(req, res) {
     }
     gameCollection.find({ id }).toArray((err, docs) => {
         if (err || docs.length !== 1) { res.redirect('/index.html') }
-        res.render('gameDetail', { ...docs[0], roundsJSON: JSON.stringify(docs[0].rounds), back: true, layout: 'layout.hbs' })
+        const game = docs[0];
+        for (const round of game.rounds) {
+            round.polygons = streets[round.streetName];
+        }
+        res.render('gameDetail', {
+            game,
+            username: req.session.username,
+            roundsJSON: JSON.stringify(game.rounds),
+            back: true,
+            layout: 'layout.hbs'
+        });
     })
 });
 
@@ -150,12 +160,14 @@ app.post('/api/game', function(req, res) {
     const streetPolygons = streets[currentRound.streetName];
     const closestCoordinate = getShortestCoordinateDistance(currentGuess, streetPolygons);
     currentRound.distance = closestCoordinate.distance;
+    currentRound.closestCoordinate = closestCoordinate.lnglat;
     const bounds = calcBounds(currentGuess, streetPolygons);
     currentRound.bounds = bounds;
     const newPoints = calcScore(closestCoordinate.distance);
     currentRound.points = newPoints;
     const currentPoints = currentGame.rounds.reduce((total, round) => total + round.points, 0);
     const line = [[currentGuess.lat, currentGuess.lng], [closestCoordinate.lnglat.lat, closestCoordinate.lnglat.lng]]
+    currentRound.guessLine = line;
     const responseJson = {
         streetName: currentRound.streetName,
         streetPolygons,

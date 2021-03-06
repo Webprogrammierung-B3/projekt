@@ -6,8 +6,8 @@
 
 <main class="details">
     <div>
-        <div>{{ username }}</div>
-        <div>Gesamtpunkte: {{ points }}</div>
+        <div>{{ game.username }}</div>
+        <div>Gesamtpunkte: {{ game.points }}</div>
         <div>Favorite</div>
     </div>
     <div>
@@ -15,8 +15,8 @@
             <div id="map"></div>
         </div>
         <div class="details__rounds js--rounds" data-rounds="{{ roundsJSON }}">
-            {{#each rounds}}
-            <div class="details__round">
+            {{#each game.rounds}}
+                <div class="details__round{{#if @first}} details__round--selected{{/if}}" onclick="displayRound(event, {{ @index }})">
                 <b title="{{ streetName }}">{{ streetName }}</b>
                 <span>{{ distance }}</span>
                 <span>{{ points }}</span>
@@ -28,6 +28,7 @@
 
 <script>
     const rounds = JSON.parse(document.querySelector('.js--rounds').getAttribute('data-rounds'));
+    const roundElements = document.querySelectorAll('.details__round');
     const mapElements = [];
     const cornerTopLeft = L.latLng(52.673639351743326, 13.019099490676352);
     const cornerBottomRight = L.latLng(52.34254034713163, 13.766007272821431);
@@ -39,13 +40,49 @@
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
 
-    for (const round of rounds) {
+    displayRound(null, 0);
 
+    function displayRound(event, index) {
+        clearMap();
+        renderRound(rounds[index]);
+        if (event) {
+            unselectAll();
+            event.currentTarget.classList.add('details__round--selected');
+        }
     }
 
-    function displayRound(round) {
+    function unselectAll() {
+        for (const element of roundElements) {
+            element.classList.remove('details__round--selected');
+        }
+    }
+
+    function renderRound(round) {
         const guessMarker = L.marker(round.guess);
         guessMarker.addTo(map);
-        mapElements.push(guessMarker)
+        mapElements.push(guessMarker);
+        const closesCoordinateMarker = L.marker(round.closestCoordinate);
+        closesCoordinateMarker.addTo(map);
+        mapElements.push(closesCoordinateMarker);
+        const line = L.polyline(round.guessLine, {
+            color: '#00ff00',
+            dashArray: '10 20'
+        });
+        line.addTo(map);
+        mapElements.push(line);
+        const geoJson = L.geoJson(round.polygons, {
+            color: '#ff7800',
+            weight: 5,
+            opacity: 0.65
+        });
+        geoJson.addTo(map);
+        mapElements.push(geoJson);
+        map.fitBounds(round.bounds);
+    }
+
+    function clearMap() {
+        for (const element of mapElements) {
+            map.removeLayer(element);
+        }
     }
 </script>
