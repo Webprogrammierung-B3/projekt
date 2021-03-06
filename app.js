@@ -21,6 +21,7 @@ const url = 'mongodb://localhost:27017/';
 const dbName = 'guess-its';
 let db;
 let gameCollection;
+let userCollection;
 
 MongoClient.connect(url, { useUnifiedTopology: true }, function(err, client) {
     if (err) {
@@ -30,6 +31,7 @@ MongoClient.connect(url, { useUnifiedTopology: true }, function(err, client) {
 
     db = client.db(dbName);
     gameCollection = db.collection('games');
+    userCollection = db.collection('users');
 });
 
 app.set('view engine', 'hbs');
@@ -74,8 +76,15 @@ app.get('*.html', function(req, res, next) {
     if (req.session.username) {
         next();
     } else {
-        req.session.username = getRandomName();
-        next();
+        const username = getRandomName();
+        req.session.username = username;
+        userCollection.insertOne({
+            username,
+            views: {},
+            favorites: []
+        }, {}, (err, result) => {
+            next();
+        });
     }
 });
 
@@ -85,7 +94,6 @@ app.get('/', function(req, res) {
 
 app.get('/index.html', function(req, res) {
     gameCollection.find({}).toArray((err, docs) => {
-        if (err) { throw err }
         res.render('index', { username: req.session.username, back: false, layout: 'layout.hbs', games: docs})
     })
 });
@@ -106,20 +114,40 @@ app.get('/game.html', function(req, res) {
     const id = req.query.id;
     if (id === undefined) {
         res.redirect('/index.html');
+        return;
     }
     gameCollection.find({ id }).toArray((err, docs) => {
-        if (err || docs.length !== 1) { res.redirect('/index.html') }
+        if (err || docs.length !== 1) {
+            res.redirect('/index.html');
+            return;
+        }
+        const username = req.session.username;
+        userCollection.find({ username }).toArray((err, docs) => {
+           if (err) throw err;
+            const key = `views.${id}`;
+           if (docs[0].views[id] === undefined) {
+               userCollection.updateOne({ username }, {
+                   $set: { [key]: 1 }
+               })
+           } else {
+               const key = `views.${id}`;
+               userCollection.updateOne({ username }, {
+                   $inc: { [key]: 1 }
+               })
+           }
+        });
         const game = docs[0];
         for (const round of game.rounds) {
             round.polygons = streets[round.streetName];
         }
+        game.relativeDate = timeAgo.format(game.date);
         for (const comment of game.comments) {
             comment.relativeDate = timeAgo.format(comment.date);
         }
         game.comments = game.comments.reverse();
         res.render('gameDetail', {
             game,
-            username: req.session.username,
+            username,
             roundsJSON: JSON.stringify(game.rounds),
             back: true,
             layout: 'layout.hbs'
@@ -196,6 +224,7 @@ app.post('/api/game', function(req, res) {
         currentGame.id = id;
         currentGame.points = currentPoints;
         currentGame.username = req.session.username;
+        currentGame.date = new Date();
 
         currentGame.comments = [];
         gameCollection.insertOne(currentGame);
