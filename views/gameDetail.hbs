@@ -5,10 +5,14 @@
 {{/extend}}
 
 <main class="details">
-    <div>
-        <div>{{ game.username }} hat {{ game.relativeDate }} folgendes Ergebnis erzielt.</div>
-        <div>Gesamtpunkte: {{ game.points }}</div>
-        <div>Favorite</div>
+    <div class="details__intro">
+        <div>
+            <div>{{ game.username }} hat {{ game.relativeDate }} folgendes Ergebnis erzielt.</div>
+            <div>Gesamtpunkte: {{ game.points }}</div>
+        </div>
+        <div class="intro__fav">
+            <i data-feather="heart" onclick="toggleFav('{{ game.id }}')"></i>
+        </div>
     </div>
     <div>
         <div>
@@ -61,6 +65,20 @@
     }).addTo(map);
 
     displayRound(null, 0);
+
+    function toggleFav(gameId) {
+        console.log(1)
+        fetch('/api/fav', {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ id: gameId })
+        }).then(response => response.json()). then(json => {
+           console.log(json)
+        });
+    }
 
     function displayRound(event, index) {
         clearMap();

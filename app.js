@@ -236,6 +236,29 @@ app.post('/api/game', function(req, res) {
     res.send(responseJson)
 });
 
+app.post('/api/fav', (req, res) => {
+    const gameId = req.body.id;
+    const username = req.session.username;
+    userCollection.find({ username }).toArray((err, docs) => {
+        if (err) throw err;
+        const key = `favorites`;
+        const userElement = docs[0];
+        let newArray;
+        let value = true;
+        if (userElement.favorites.includes(gameId)) {
+            newArray = userElement.favorites.filter(e => e !== gameId);
+            value = false;
+        } else {
+            newArray = userElement.favorites;
+            newArray.push(gameId);
+        }
+        userCollection.updateOne({ username }, {
+            $set: { favorites: newArray }
+        })
+        res.send({ value })
+    });
+});
+
 app.post('/game.html', (req, res) => {
     const gameId = req.body.id;
     const content = req.body.content;

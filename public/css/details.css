@@ -3,6 +3,31 @@
     height: 50vh;
 }
 
+.details__intro {
+    display: flex;
+    justify-content: space-between;
+}
+
+.intro__fav {
+    margin-left: 0.5rem;
+    height: 2rem;
+    width: 2rem;
+    border-radius: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.intro__fav--active {
+    background-color: red;
+    color: white;
+}
+
+.intro__fav > svg {
+    width: 23px;
+    padding: 0.25rem;
+}
+
 .details__round {
     display: grid;
     grid-template-columns: 2fr repeat(2, 1fr);
