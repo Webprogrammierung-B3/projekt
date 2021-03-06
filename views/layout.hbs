@@ -3,21 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <title>Guess it's Berlin?</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="css/styles.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="icons/feather.js"></script>
+    {{{block "header"}}}
 </head>
 <body>
+<header>
+    <div class="header__body">
+        <a class="header__link" href="index.html">
+            {{#if back}}<i data-feather="chevron-left"></i>{{/if}}
+            <span class="header__title">Guess it's Berlin?!</span>
+        </a>
+        <span>{{ username }}</span>
+    </div>
+</header>
 {{{body}}}
-<nav>
-    <h2>Navigation</h2>
-    <ul class="navlink">
-        <li><a href="index.html">Hauptseite</a></li>
-        <li><a href="register.html">Registrierung</a></li>
-        <li><a href="howto.html">Spielablauf</a></li>
-        <li><a href="highscore.html">Highscores</a></li>
-        <li>{{ username }}</li>
-    </ul>
-</nav>
+<script>
+    feather.replace()
+</script>
 </body>
 </html>
 

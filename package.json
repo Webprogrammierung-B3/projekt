@@ -18,9 +18,17 @@
   },
   "homepage": "https://github.com/Webprogrammierung-B3/projekt#readme",
   "dependencies": {
+    "@turf/turf": "^6.3.0",
     "body-parser": "^1.19.0",
+    "connect-mongo": "^4.2.2",
     "express": "^4.17.1",
     "express-session": "^1.17.1",
-    "hbs": "^4.1.1"
+    "feather-icons": "^4.28.0",
+    "hbs": "^4.1.1",
+    "javascript-time-ago": "^2.3.4",
+    "leaflet": "^1.7.1",
+    "mongodb": "^3.6.4",
+    "unique-names-generator": "^4.4.0",
+    "uuidv4": "^6.2.6"
   }
 }

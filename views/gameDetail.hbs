@@ -1,0 +1,126 @@
+{{#extend "header"}}
+    <link rel="stylesheet" href="map/leaflet.css">
+    <script src="map/leaflet.js"></script>
+    <link rel="stylesheet" href="css/details.css">
+{{/extend}}
+
+<main class="details">
+    <div class="details__intro">
+        <div>
+            <div>{{ game.username }} hat {{ game.relativeDate }} folgendes Ergebnis erzielt.</div>
+            <div>Gesamtpunkte: {{ game.points }}</div>
+        </div>
+        <div class="intro__fav">
+            <i data-feather="heart" onclick="toggleFav('{{ game.id }}')"></i>
+        </div>
+    </div>
+    <div>
+        <div>
+            <div id="map"></div>
+        </div>
+        <div class="details__rounds js--rounds" data-rounds="{{ roundsJSON }}">
+            {{#each game.rounds}}
+                <div class="details__round{{#if @first}} details__round--selected{{/if}}" onclick="displayRound(event, {{ @index }})">
+                <b title="{{ streetName }}">{{ streetName }}</b>
+                <span>{{ distance }}</span>
+                <span>{{ points }}</span>
+            </div>
+            {{/each}}
+        </div>
+    </div>
+    <div>
+        <h2>Kommentare:</h2>
+        <form method="POST">
+            <input type="hidden" value="{{ game.id }}" name="id">
+            <label for="input-comment">Kommentieren als {{ username }}: </label>
+            <textarea id="input-comment" class="details__comment-input" rows="4" name="content"></textarea>
+            <button type="submit">Absenden</button>
+        </form>
+        <div class="comments">
+            {{#each game.comments}}
+                <div class="comment">
+                    <div class="comment__header">
+                        <b>{{ username }}:</b>
+                        <span title="{{ date }}">{{ relativeDate }}</span>
+                    </div>
+                    <div>{{ content }}</div>
+                </div>
+            {{/each}}
+        </div>
+    </div>
+</main>
+
+<script>
+    const rounds = JSON.parse(document.querySelector('.js--rounds').getAttribute('data-rounds'));
+    const roundElements = document.querySelectorAll('.details__round');
+    const mapElements = [];
+    const cornerTopLeft = L.latLng(52.673639351743326, 13.019099490676352);
+    const cornerBottomRight = L.latLng(52.34254034713163, 13.766007272821431);
+    const initialBounds = L.latLngBounds(cornerTopLeft, cornerBottomRight);
+    const map = L.map('map', { minZoom: 10,
+        maxBoundsViscosity: 1.0 }).fitBounds(initialBounds, 11);
+    map.setMaxBounds(initialBounds)
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    displayRound(null, 0);
+
+    function toggleFav(gameId) {
+        console.log(1)
+        fetch('/api/fav', {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ id: gameId })
+        }).then(response => response.json()). then(json => {
+           console.log(json)
+        });
+    }
+
+    function displayRound(event, index) {
+        clearMap();
+        renderRound(rounds[index]);
+        if (event) {
+            unselectAll();
+            event.currentTarget.classList.add('details__round--selected');
+        }
+    }
+
+    function unselectAll() {
+        for (const element of roundElements) {
+            element.classList.remove('details__round--selected');
+        }
+    }
+
+    function renderRound(round) {
+        const guessMarker = L.marker(round.guess);
+        guessMarker.addTo(map);
+        mapElements.push(guessMarker);
+        const closesCoordinateMarker = L.marker(round.closestCoordinate);
+        closesCoordinateMarker.addTo(map);
+        mapElements.push(closesCoordinateMarker);
+        const line = L.polyline(round.guessLine, {
+            color: '#00ff00',
+            dashArray: '10 20'
+        });
+        line.addTo(map);
+        mapElements.push(line);
+        const geoJson = L.geoJson(round.polygons, {
+            color: '#ff7800',
+            weight: 5,
+            opacity: 0.65
+        });
+        geoJson.addTo(map);
+        mapElements.push(geoJson);
+        map.fitBounds(round.bounds);
+    }
+
+    function clearMap() {
+        for (const element of mapElements) {
+            map.removeLayer(element);
+        }
+    }
+</script>

@@ -1,5 +1,21 @@
-<h1>Guess it's Berlin?</h1>
 <main>
-    <img src="img/berlin.png" alt="Berlin">
-    <img src="img/Schild.png" alt="Schild">
+    <div>
+        <h2>New Game</h2>
+        <span>How to play</span>
+    </div>
+    <div>
+        <h2>High scores</h2>
+        <div>
+            {{#each games}}
+                <div><a href="/game.html?id={{ id }}">{{ username }}</a>: {{ points }} Punkte</div>
+            {{/each}}
+        </div>
+    </div>
+    <div>
+        <h2>Most viewed</h2>
+    </div>
+    <div>
+        <h2>Favorites</h2>
+        <div></div>
+    </div>
 </main>
