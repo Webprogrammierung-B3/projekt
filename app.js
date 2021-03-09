@@ -26,7 +26,7 @@ let db;
 let gameCollection;
 let userCollection;
 
-if (insideDocker) {
+if (secureCookie && insideDocker) {
     app.set('trust proxy', 1) // trust first proxy
 }
 
@@ -49,6 +49,8 @@ app.use(session({
     cookie: {
         secure: secureCookie,
         maxAge: 1000 * 60 * 60 * 24 * 365, // one year in ms
+        sameSite: true,
+        httpOnly: true
     },
     store: MongoStore.create({
         mongoUrl: url + dbName
