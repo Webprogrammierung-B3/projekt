@@ -39,7 +39,10 @@ app.use(session({
     secret: 'keyboard cat',
     resave: false,
     saveUninitialized: true,
-    cookie: { secure: false },
+    cookie: {
+        secure: false,
+        maxAge: 1000 * 60 * 60 * 24 * 365 // one year in ms
+    },
     store: MongoStore.create({
         mongoUrl: url + dbName
     })
@@ -93,8 +96,11 @@ app.get('/', function(req, res) {
 })
 
 app.get('/index.html', function(req, res) {
-    gameCollection.find({}).toArray((err, docs) => {
-        res.render('index', { username: req.session.username, back: false, layout: 'layout.hbs', games: docs})
+    gameCollection.find({}).sort({ points: -1 }).limit(10).toArray((err, docs) => {
+        userCollection.findOne({ username: req.session.username }, (err, userDoc) => {
+            const views = Object.values(userDoc.views).sort((a, b) => b.count - a.count).slice(0, 5);
+            res.render('index', { username: req.session.username, back: false, layout: 'layout.hbs', games: docs, favorites: userDoc.favorites, views })
+        })
     })
 });
 
@@ -127,12 +133,21 @@ app.get('/game.html', function(req, res) {
             const key = `views.${id}`;
             if (userDocs[0].views[id] === undefined) {
                userCollection.updateOne({ username }, {
-                   $set: { [key]: 1 }
+                   $set: {
+                       [key]: {
+                           id,
+                           count: 1,
+                           username: docs[0].username,
+                           points: docs[0].points
+                       }
+                   }
                })
             } else {
-               const key = `views.${id}`;
+               const key = `views.${id}.count`;
                userCollection.updateOne({ username }, {
-                   $inc: { [key]: 1 }
+                   $inc: {
+                       [key]: 1
+                   }
                })
             }
             const game = docs[0];
@@ -242,21 +257,28 @@ app.post('/api/fav', (req, res) => {
     const username = req.session.username;
     userCollection.find({ username }).toArray((err, docs) => {
         if (err) throw err;
-        const key = `favorites`;
         const userElement = docs[0];
         let newArray;
-        let value = true;
-        if (userElement.favorites.includes(gameId)) {
-            newArray = userElement.favorites.filter(e => e !== gameId);
-            value = false;
+        if (userElement.favorites.find(e => e.id === gameId)) {
+            newArray = userElement.favorites.filter(e => e.id !== gameId);
+            userCollection.updateOne({ username }, {
+                $set: { favorites: newArray }
+            })
+            res.send({ value: false })
         } else {
             newArray = userElement.favorites;
-            newArray.push(gameId);
+            gameCollection.findOne({ id: gameId }, (err, doc) => {
+                newArray.push({
+                    id: gameId,
+                    username: doc.username,
+                    points: doc.points
+                });
+                userCollection.updateOne({ username }, {
+                    $set: { favorites: newArray }
+                })
+                res.send({ value: true })
+            })
         }
-        userCollection.updateOne({ username }, {
-            $set: { favorites: newArray }
-        })
-        res.send({ value })
     });
 });
 

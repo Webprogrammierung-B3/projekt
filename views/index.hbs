@@ -13,9 +13,18 @@
     </div>
     <div>
         <h2>Most viewed</h2>
+        <div>
+            {{#each views}}
+                <div><a href="/game.html?id={{ id }}">{{ username }}</a>: {{ points }} Punkte (Views: {{ count }})</div>
+            {{/each}}
+        </div>
     </div>
     <div>
         <h2>Favorites</h2>
-        <div></div>
+        <div>
+            {{#each favorites}}
+                <div><a href="/game.html?id={{ id }}">{{ username }}</a>: {{ points }} Punkte</div>
+            {{/each}}
+        </div>
     </div>
 </main>
