@@ -6,6 +6,10 @@ services:
       - 8080:8080
     depends_on:
       - db
+    environment:
+      - INSIDE_DOCKER=true
+      - SECURE_COOKIE=true
+      - APP_SECRET=
   db:
     image: mongo:4
     volumes:

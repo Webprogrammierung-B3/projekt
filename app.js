@@ -17,7 +17,10 @@ const streetNames = Object.keys(streets);
 const len = streetNames.length;
 const app = express();
 const port = 8080;
-const url = 'mongodb://db:27017/';
+const insideDocker = Boolean(process.env.INSIDE_DOCKER);
+const secureCookie = Boolean(process.env.SECURE_COOKIE);
+const appSecret = process.env.APP_SECRET;
+const url = insideDocker ? 'mongodb://db:27017/' : 'mongodb://localhost:27017/';
 const dbName = 'guess-its';
 let db;
 let gameCollection;
@@ -36,11 +39,11 @@ MongoClient.connect(url, { useUnifiedTopology: true }, function(err, client) {
 
 app.set('view engine', 'hbs');
 app.use(session({
-    secret: 'keyboard cat',
+    secret: appSecret || 'top secret string which wont be used in production, right?',
     resave: false,
     saveUninitialized: true,
     cookie: {
-        secure: false,
+        secure: secureCookie,
         maxAge: 1000 * 60 * 60 * 24 * 365 // one year in ms
     },
     store: MongoStore.create({
