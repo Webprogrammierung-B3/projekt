@@ -122,35 +122,36 @@ app.get('/game.html', function(req, res) {
             return;
         }
         const username = req.session.username;
-        userCollection.find({ username }).toArray((err, docs) => {
-           if (err) throw err;
+        userCollection.find({ username }).toArray((err, userDocs) => {
+            if (err) throw err;
             const key = `views.${id}`;
-           if (docs[0].views[id] === undefined) {
+            if (userDocs[0].views[id] === undefined) {
                userCollection.updateOne({ username }, {
                    $set: { [key]: 1 }
                })
-           } else {
+            } else {
                const key = `views.${id}`;
                userCollection.updateOne({ username }, {
                    $inc: { [key]: 1 }
                })
-           }
-        });
-        const game = docs[0];
-        for (const round of game.rounds) {
-            round.polygons = streets[round.streetName];
-        }
-        game.relativeDate = timeAgo.format(game.date);
-        for (const comment of game.comments) {
-            comment.relativeDate = timeAgo.format(comment.date);
-        }
-        game.comments = game.comments.reverse();
-        res.render('gameDetail', {
-            game,
-            username,
-            roundsJSON: JSON.stringify(game.rounds),
-            back: true,
-            layout: 'layout.hbs'
+            }
+            const game = docs[0];
+            for (const round of game.rounds) {
+                round.polygons = streets[round.streetName];
+            }
+            game.relativeDate = timeAgo.format(game.date);
+            for (const comment of game.comments) {
+                comment.relativeDate = timeAgo.format(comment.date);
+            }
+            game.comments = game.comments.reverse();
+            res.render('gameDetail', {
+                game,
+                username,
+                isFavorite: userDocs[0].favorites.includes(game.id),
+                roundsJSON: JSON.stringify(game.rounds),
+                back: true,
+                layout: 'layout.hbs'
+            });
         });
     })
 });

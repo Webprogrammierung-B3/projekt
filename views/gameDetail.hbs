@@ -10,7 +10,7 @@
             <div>{{ game.username }} hat {{ game.relativeDate }} folgendes Ergebnis erzielt.</div>
             <div>Gesamtpunkte: {{ game.points }}</div>
         </div>
-        <div class="intro__fav">
+        <div class="intro__fav{{#if isFavorite}} intro__fav--active{{/if}}">
             <i data-feather="heart" onclick="toggleFav('{{ game.id }}')"></i>
         </div>
     </div>
@@ -53,6 +53,7 @@
 <script>
     const rounds = JSON.parse(document.querySelector('.js--rounds').getAttribute('data-rounds'));
     const roundElements = document.querySelectorAll('.details__round');
+    const favElement = document.querySelector('.intro__fav');
     const mapElements = [];
     const cornerTopLeft = L.latLng(52.673639351743326, 13.019099490676352);
     const cornerBottomRight = L.latLng(52.34254034713163, 13.766007272821431);
@@ -66,18 +67,28 @@
 
     displayRound(null, 0);
 
+    let favUpdateInProgress = false;
+
     function toggleFav(gameId) {
-        console.log(1)
-        fetch('/api/fav', {
-            method: 'POST',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ id: gameId })
-        }).then(response => response.json()). then(json => {
-           console.log(json)
-        });
+        if (!favUpdateInProgress) {
+            favElement.classList.toggle('intro__fav--active');
+            favUpdateInProgress = true;
+            fetch('/api/fav', {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ id: gameId })
+            }).then(response => response.json()). then(json => {
+                if (json.value) {
+                    favElement.classList.add('intro__fav--active');
+                } else {
+                    favElement.classList.remove('intro__fav--active');
+                }
+                favUpdateInProgress = false;
+            });
+        }
     }
 
     function displayRound(event, index) {
