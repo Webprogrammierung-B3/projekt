@@ -355,13 +355,8 @@ function getShortestCoordinateDistance(currentGuess, streetPolygons) {
 function calcScore(distance) {
     let newPoints = 0;
     if (distance < 10025) {
-        if (distance < 25) {
-            newPoints = 200;
-        } else {
-            const temp = distance - 25;
-            const percentage = 1 - temp / 20000;
-            newPoints = Math.round(percentage * 200);
-        }
+        //newPoints = Math.round(5 * Math.pow(10, -7) * Math.pow(distance, 2) - 0.02 * distance + 200);
+        newPoints = Math.round(2 * Math.pow(10, -6) * Math.pow(distance, 2) - 0.04 * distance + 200);
     }
     return newPoints;
 }
