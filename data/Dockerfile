@@ -20,4 +20,6 @@ RUN npm install
 
 COPY main.js .
 
+RUN curl https://download.geofabrik.de/europe/germany/berlin-latest.osm.pbf > city.osm.pbf
+
 ENTRYPOINT ["node", "main.js"]

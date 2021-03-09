@@ -1,0 +1,21 @@
+version: '3'
+services:
+  app:
+    build: .
+    ports:
+      - 8080:8080
+    depends_on:
+      - db
+    volumes:
+      - data:/app/data/dist
+  db:
+    image: mongo:4
+    volumes:
+      - db:/data/db
+  data:
+    build: ./data
+    volumes:
+      - data:/app/dist
+volumes:
+  db:
+  data:

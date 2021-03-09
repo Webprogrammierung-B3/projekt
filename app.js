@@ -17,7 +17,7 @@ const streetNames = Object.keys(streets);
 const len = streetNames.length;
 const app = express();
 const port = 8080;
-const url = 'mongodb://localhost:27017/';
+const url = 'mongodb://db:27017/';
 const dbName = 'guess-its';
 let db;
 let gameCollection;
