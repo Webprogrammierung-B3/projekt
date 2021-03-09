@@ -55,6 +55,8 @@ footer {
     background-color: #ff934f;
     cursor: pointer;
     font-weight: bold;
+    margin: 0.5rem;
+    border-radius: 0.25rem;
 }
 
 .hidden {
