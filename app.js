@@ -39,7 +39,10 @@ app.use(session({
     secret: 'keyboard cat',
     resave: false,
     saveUninitialized: true,
-    cookie: { secure: false },
+    cookie: {
+        secure: false,
+        maxAge: 1000 * 60 * 60 * 24 * 365 // one year in ms
+    },
     store: MongoStore.create({
         mongoUrl: url + dbName
     })
@@ -93,8 +96,35 @@ app.get('/', function(req, res) {
 })
 
 app.get('/index.html', function(req, res) {
-    gameCollection.find({}).toArray((err, docs) => {
-        res.render('index', { username: req.session.username, back: false, layout: 'layout.hbs', games: docs})
+    gameCollection.find({}).sort({ points: -1 }).limit(10).toArray((err, docs) => {
+        userCollection.findOne({ username: req.session.username }, (err, userDoc) => {
+            const username = req.session.username;
+            for (const doc of docs) {
+                if (doc.username === username) {
+                    doc.me = true;
+                }
+                doc.relativeDate = timeAgo.format(doc.date);
+            }
+            for (const game of userDoc.favorites) {
+                if (game.username === username) {
+                    game.me = true
+                }
+                game.relativeDate = timeAgo.format(game.date);
+            }
+            const views = Object.values(userDoc.views).sort((a, b) => b.count - a.count).slice(0, 5);
+            for (const game of views) {
+                if (game.username === username) {
+                    game.me = true
+                }
+                game.relativeDate = timeAgo.format(game.date);
+            }
+            const empty = {
+                highscores: docs.length < 1,
+                favorites: userDoc.favorites.length < 1,
+                views: views.length < 1
+            }
+            res.render('index', { username: req.session.username, back: false, layout: 'layout.hbs', games: docs, favorites: userDoc.favorites, views, empty })
+        })
     })
 });
 
@@ -122,35 +152,52 @@ app.get('/game.html', function(req, res) {
             return;
         }
         const username = req.session.username;
-        userCollection.find({ username }).toArray((err, docs) => {
-           if (err) throw err;
+        userCollection.find({ username }).toArray((err, userDocs) => {
+            if (err) throw err;
             const key = `views.${id}`;
-           if (docs[0].views[id] === undefined) {
+            if (userDocs[0].views[id] === undefined) {
                userCollection.updateOne({ username }, {
-                   $set: { [key]: 1 }
+                   $set: {
+                       [key]: {
+                           id,
+                           count: 1,
+                           username: docs[0].username,
+                           points: docs[0].points,
+                           date: docs[0].date
+                       }
+                   }
                })
-           } else {
-               const key = `views.${id}`;
+            } else {
+               const key = `views.${id}.count`;
                userCollection.updateOne({ username }, {
-                   $inc: { [key]: 1 }
+                   $inc: {
+                       [key]: 1
+                   }
                })
-           }
-        });
-        const game = docs[0];
-        for (const round of game.rounds) {
-            round.polygons = streets[round.streetName];
-        }
-        game.relativeDate = timeAgo.format(game.date);
-        for (const comment of game.comments) {
-            comment.relativeDate = timeAgo.format(comment.date);
-        }
-        game.comments = game.comments.reverse();
-        res.render('gameDetail', {
-            game,
-            username,
-            roundsJSON: JSON.stringify(game.rounds),
-            back: true,
-            layout: 'layout.hbs'
+            }
+            const game = docs[0];
+            for (const round of game.rounds) {
+                round.polygons = streets[round.streetName];
+            }
+            game.relativeDate = timeAgo.format(game.date);
+            for (const comment of game.comments) {
+                comment.relativeDate = timeAgo.format(comment.date);
+                if (comment.username === username) {
+                    comment.me = true;
+                }
+            }
+            if (game.username === username) {
+                game.me = true;
+            }
+            game.comments = game.comments.reverse();
+            res.render('gameDetail', {
+                game,
+                username,
+                isFavorite: userDocs[0].favorites.filter(e => e.id === game.id).length > 0,
+                roundsJSON: JSON.stringify(game.rounds),
+                back: true,
+                layout: 'layout.hbs'
+            });
         });
     })
 });
@@ -241,21 +288,29 @@ app.post('/api/fav', (req, res) => {
     const username = req.session.username;
     userCollection.find({ username }).toArray((err, docs) => {
         if (err) throw err;
-        const key = `favorites`;
         const userElement = docs[0];
         let newArray;
-        let value = true;
-        if (userElement.favorites.includes(gameId)) {
-            newArray = userElement.favorites.filter(e => e !== gameId);
-            value = false;
+        if (userElement.favorites.find(e => e.id === gameId)) {
+            newArray = userElement.favorites.filter(e => e.id !== gameId);
+            userCollection.updateOne({ username }, {
+                $set: { favorites: newArray }
+            })
+            res.send({ value: false })
         } else {
             newArray = userElement.favorites;
-            newArray.push(gameId);
+            gameCollection.findOne({ id: gameId }, (err, doc) => {
+                newArray.push({
+                    id: gameId,
+                    username: doc.username,
+                    points: doc.points,
+                    date: doc.date
+                });
+                userCollection.updateOne({ username }, {
+                    $set: { favorites: newArray }
+                })
+                res.send({ value: true })
+            })
         }
-        userCollection.updateOne({ username }, {
-            $set: { favorites: newArray }
-        })
-        res.send({ value })
     });
 });
 
@@ -300,13 +355,8 @@ function getShortestCoordinateDistance(currentGuess, streetPolygons) {
 function calcScore(distance) {
     let newPoints = 0;
     if (distance < 10025) {
-        if (distance < 25) {
-            newPoints = 200;
-        } else {
-            const temp = distance - 25;
-            const percentage = 1 - temp / 20000;
-            newPoints = Math.round(percentage * 200);
-        }
+        //newPoints = Math.round(5 * Math.pow(10, -7) * Math.pow(distance, 2) - 0.02 * distance + 200);
+        newPoints = Math.round(2 * Math.pow(10, -6) * Math.pow(distance, 2) - 0.04 * distance + 200);
     }
     return newPoints;
 }

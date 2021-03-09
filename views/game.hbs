@@ -20,10 +20,25 @@
         <div>Punkte: <span class="js--points footer__number">0</span></div>
         <div>Runde: <span class="js--round footer__number">0</span>/<span class="js--round-total">0</span></div>
     </div>
-    <button class="game__submit js--submit hidden" onclick="submitGuess()">Submit your guess!</button>
-    <button class="game__submit js--next hidden" onclick="getNextRound()">Next round!</button>
+    <button class="game__submit js--submit hidden" onclick="submitGuess()">Bestätigen!</button>
+    <button class="game__submit js--next hidden" onclick="getNextRound()">Nächste Runde!</button>
     <button class="game__submit js--loading hidden" disabled>Loading...</button>
 </footer>
+<div class="menu js--menu hidden">
+    <div class="menu__content">
+        <div>
+            Du hast <span class="js--menu-points">100</span> Punkte erreicht.
+        </div>
+        <div class="menu__action menu__action--restart" onclick="menuElement.classList.add('hidden');">
+            <i data-feather="rotate-ccw"></i>
+            <div>Neues Spiel</div>
+        </div>
+        <a href="/index.html" class="menu__action">
+            <i data-feather="home"></i>
+            <div>Hauptmenü</div>
+        </a>
+    </div>
+</div>
 <script>
     let canMakeNewGuess = true;
     const submitButton = document.querySelector('.js--submit');
@@ -36,19 +51,31 @@
     const resultElement = document.querySelector('.js--result');
     const scoreElement = document.querySelector('.js--score');
     const distanceElement = document.querySelector('.js--distance');
+    const menuElement = document.querySelector('.js--menu');
+    const menuPointsElement = document.querySelector('.js--menu-points');
+    const grayIcon = L.icon({
+        iconUrl: 'img/gray_marker.png',
+        iconSize:     [30, 46],
+        iconAnchor:   [15, 46]
+    });
+    const orangeIcon = L.icon({
+        iconUrl: 'img/orange_marker.png',
+        iconSize:     [30, 46],
+        iconAnchor:   [15, 46]
+    });
     const cornerTopLeft = L.latLng(52.673639351743326, 13.019099490676352);
     const cornerBottomRight = L.latLng(52.34254034713163, 13.766007272821431);
     const initialBounds = L.latLngBounds(cornerTopLeft, cornerBottomRight);
     const map = L.map('map', { minZoom: 10,
         maxBoundsViscosity: 1.0 }).fitBounds(initialBounds, 11);
-    map.setMaxBounds(initialBounds)
+    map.setMaxBounds(initialBounds);
     let currentGuess;
     map.on('click', function(e) {
         if (canMakeNewGuess) {
             if (currentGuess !== undefined) {
                 map.removeLayer(currentGuess);
             }
-            const marker = L.marker([e.latlng.lat,e.latlng.lng]);
+            const marker = L.marker([e.latlng.lat,e.latlng.lng], { icon: orangeIcon });
             currentGuess = marker;
             marker.addTo(map);
             submitButton.classList.remove('hidden');
@@ -59,10 +86,16 @@
     }).addTo(map);
 
     const roundElements = [];
+    let isNewGame = false;
 
     function getNextRound() {
+        map.fitBounds(initialBounds);
         nextButton.classList.add('hidden');
         loadingButton.classList.remove('hidden');
+        if (isNewGame) {
+            menuElement.classList.remove('hidden');
+            isNewGame = false;
+        }
         if (currentGuess !== undefined) {
             map.removeLayer(currentGuess);
         }
@@ -100,31 +133,35 @@
             distanceElement.innerText = json.distance;
 
             const line = L.polyline(json.line, {
-                color: '#00ff00',
-                dashArray: '10 20'
+                color: '#5e565a',
+                dashArray: '10 20',
+                weight: 3
             });
             line.addTo(map);
             roundElements.push(line);
 
             const geoJson = L.geoJson(json.streetPolygons, {
-                color: '#ff7800',
-                weight: 5,
-                opacity: 0.65
+                color: '#ff934f',
+                weight: 5
             });
             geoJson.addTo(map);
             roundElements.push(geoJson);
 
-            const marker = L.marker([json.closestCoordinate.lat, json.closestCoordinate.lng]);
+            const marker = L.marker([json.closestCoordinate.lat, json.closestCoordinate.lng], { icon: grayIcon });
             marker.addTo(map);
             roundElements.push(marker);
             loadingButton.classList.add('hidden');
             nextButton.classList.remove('hidden');
             map.fitBounds(json.bounds);
+            if (json.newGame) {
+                isNewGame = true;
+                menuPointsElement.innerText = json.currentPoints;
+            }
         })
     }
     fetch('/berlin.geo.json').then(res => res.json()).then(json => {
         const geoJson = L.geoJSON(json, {
-            color: '#ff7800',
+            color: '#ff7500',
             weight: 3,
             fill: false
         });

@@ -4,8 +4,9 @@ body {
 }
 
 header {
-    background-color: #a9cbb7;
+    background-color: #5e565a;
     padding: 0.75rem;
+    color: white;
 }
 
 .header__body {
@@ -18,7 +19,7 @@ header {
     display: flex;
     justify-content: center;
     text-decoration: none;
-    color: black;
+    color: white;
 }
 
 .header__title {

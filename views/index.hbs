@@ -1,21 +1,83 @@
+{{#extend "header"}}
+    <link rel="stylesheet" href="css/index.css">
+{{/extend}}
+
 <main>
     <div>
-        <h2>New Game</h2>
-        <span>How to play</span>
-    </div>
-    <div>
-        <h2>High scores</h2>
+        <a href="/play.html" class="play"><h2><i data-feather="play"></i> Neues Spiel</h2></a>
         <div>
-            {{#each games}}
-                <div><a href="/game.html?id={{ id }}">{{ username }}</a>: {{ points }} Punkte</div>
-            {{/each}}
+            <h3>Wie funktioniert das Spiel?</h3>
+            <ol>
+                <li>Du bekommst einen zufälligen Straßennamen angezeigt.</li>
+                <li>Du wählst auf der Karte deine Vermutung aus.</li>
+                <li>Je nach Genauigkeit erhälst du Punkte. (Maximal 200 pro Runde)</li>
+                <li>Ein Spiel besteht aus 5 Runden. (Insgesamt maximal 1000 Punkte)</li>
+            </ol>
         </div>
     </div>
     <div>
-        <h2>Most viewed</h2>
+        <h2>High scores</h2>
+        {{#if empty.highscores}}
+            <div>Keine Highscores vorhanden.</div>
+        {{else}}
+        <div>
+            <div class="highscore">
+                <b title="Username">Username</b>
+                <b class="highscore__points" title="Punkte"><i data-feather="award"></i></b>
+                <b class="highscore__date"><i data-feather="calendar"></i></b>
+            </div>
+            {{#each games}}
+                <a href="/game.html?id={{ id }}" class="highscore">
+                    <div title="{{ username }}">{{#if me}}<i data-feather="user"></i>{{/if}}{{ username }}</div>
+                    <div class="highscore__points" title="{{ points }}">{{ points }}</div>
+                    <div class="highscore__date" title="{{ relativeDate }}">{{ relativeDate }}</div>
+                </a>
+            {{/each}}
+        </div>
+        {{/if}}
     </div>
     <div>
-        <h2>Favorites</h2>
-        <div></div>
+        <h2>Favoriten</h2>
+        {{#if empty.views}}
+                <div>Keine Favoriten vorhanden.</div>
+        {{else}}
+        <div>
+            <div class="highscore">
+                <b title="Username">Username</b>
+                <b class="highscore__points" title="Punkte"><i data-feather="award"></i></b>
+                <b class="highscore__date"><i data-feather="calendar"></i></b>
+            </div>
+            {{#each favorites}}
+                <a href="/game.html?id={{ id }}" class="highscore">
+                <div title="{{ username }}">{{#if me}}<i data-feather="user"></i>{{/if}}{{ username }}</div>
+                <div class="highscore__points" title="{{ points }}">{{ points }}</div>
+                <div class="highscore__date" title="{{ relativeDate }}">{{ relativeDate }}</div>
+                </a>
+            {{/each}}
+        </div>
+        {{/if}}
+    </div>
+    <div>
+        <h2>Most Viewed</h2>
+        {{#if empty.views}}
+            <div>Keine Views vorhanden.</div>
+        {{else}}
+            <div>
+                <div class="highscore highscore--views">
+                    <b title="Username">Username</b>
+                    <b class="highscore__points" title="Punkte"><i data-feather="award"></i></b>
+                    <b class="highscore__date"><i data-feather="calendar"></i></b>
+                    <b class="highscore__count" title="Views"><i data-feather="eye"></i></b>
+                </div>
+                {{#each views}}
+                    <a href="/game.html?id={{ id }}" class="highscore highscore--views">
+                    <div title="{{ username }}">{{#if me}}<i data-feather="user"></i>{{/if}}{{ username }}</div>
+                    <div class="highscore__points" title="{{ points }}">{{ points }}</div>
+                    <div class="highscore__date" title="{{ relativeDate }}">{{ relativeDate }}</div>
+                    <div class="highscore__count" title="{{ count }}">{{ count }}</div>
+                    </a>
+                {{/each}}
+            </div>
+        {{/if}}
     </div>
 </main>
