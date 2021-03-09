@@ -1,0 +1,49 @@
+main {
+    max-width: 48rem;
+    margin: 0 auto;
+}
+
+.play {
+    text-decoration: none;
+    color: black;
+}
+
+.play > h2 {
+    border: 1px black solid;
+    padding: 0.75rem;
+    text-align: center;
+}
+
+.highscore {
+    display: grid;
+    grid-template-columns: 2fr 1fr 2fr;
+    grid-column-gap: 0.75rem;
+    text-decoration: none;
+    color: black;
+    border-bottom: 1px gray solid;
+    padding: 0.125rem;
+}
+
+.highscore--views {
+    grid-template-columns: 2fr 1fr 2fr 2.5rem;
+}
+
+.highscore:last-child {
+    border-bottom: 0;
+}
+
+.highscore > div > svg {
+    height: 0.9rem;
+}
+
+.highscore > * {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.highscore__count,
+.highscore__points,
+.highscore__date {
+    text-align: right;
+}

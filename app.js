@@ -103,19 +103,27 @@ app.get('/index.html', function(req, res) {
                 if (doc.username === username) {
                     doc.me = true;
                 }
+                doc.relativeDate = timeAgo.format(doc.date);
             }
             for (const game of userDoc.favorites) {
                 if (game.username === username) {
                     game.me = true
                 }
+                game.relativeDate = timeAgo.format(game.date);
             }
             const views = Object.values(userDoc.views).sort((a, b) => b.count - a.count).slice(0, 5);
             for (const game of views) {
                 if (game.username === username) {
                     game.me = true
                 }
+                game.relativeDate = timeAgo.format(game.date);
             }
-            res.render('index', { username: req.session.username, back: false, layout: 'layout.hbs', games: docs, favorites: userDoc.favorites, views })
+            const empty = {
+                highscores: docs.length < 1,
+                favorites: userDoc.favorites.length < 1,
+                views: views.length < 1
+            }
+            res.render('index', { username: req.session.username, back: false, layout: 'layout.hbs', games: docs, favorites: userDoc.favorites, views, empty })
         })
     })
 });
@@ -154,7 +162,8 @@ app.get('/game.html', function(req, res) {
                            id,
                            count: 1,
                            username: docs[0].username,
-                           points: docs[0].points
+                           points: docs[0].points,
+                           date: docs[0].date
                        }
                    }
                })
@@ -293,7 +302,8 @@ app.post('/api/fav', (req, res) => {
                 newArray.push({
                     id: gameId,
                     username: doc.username,
-                    points: doc.points
+                    points: doc.points,
+                    date: doc.date
                 });
                 userCollection.updateOne({ username }, {
                     $set: { favorites: newArray }
