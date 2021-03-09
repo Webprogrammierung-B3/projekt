@@ -7,8 +7,9 @@ services:
     depends_on:
       - db
     environment:
+      # leave unset for false
       - INSIDE_DOCKER=true
-      - SECURE_COOKIE=false
+      - SECURE_COOKIE=
       - APP_SECRET=
   db:
     image: mongo:4
