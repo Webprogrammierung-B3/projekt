@@ -7,8 +7,8 @@
 <main class="details">
     <div class="details__intro">
         <div>
-            <div>{{ game.username }}{{#if game.me}} (ich){{/if}} hat {{ game.relativeDate }} folgendes Ergebnis erzielt.</div>
-            <div>Gesamtpunkte: {{ game.points }}</div>
+            <div><b>{{ game.username }}{{#if game.me}} (ich){{/if}}</b> hat {{ game.relativeDate }} folgendes Ergebnis erzielt.</div>
+            <div>Gesamtpunkte: <b>{{ game.points }}</b></div>
         </div>
         <div class="intro__fav{{#if isFavorite}} intro__fav--active{{/if}}">
             <i data-feather="heart" onclick="toggleFav('{{ game.id }}')"></i>
@@ -18,13 +18,19 @@
         <div>
             <div id="map"></div>
         </div>
+        <h2>Runden:</h2>
         <div class="details__rounds js--rounds" data-rounds="{{ roundsJSON }}">
+            <div class="details__round">
+                <b>Straßenname</b>
+                <b class="details__distance">Distanz</b>
+                <b class="details__points">Punkte</b>
+            </div>
             {{#each game.rounds}}
                 <div class="details__round{{#if @first}} details__round--selected{{/if}}" onclick="displayRound(event, {{ @index }})">
-                <b title="{{ streetName }}">{{ streetName }}</b>
-                <span>{{ distance }}</span>
-                <span>{{ points }}</span>
-            </div>
+                    <span title="{{ streetName }}" class="details__streetname"><i data-feather="map-pin"></i>{{ streetName }}</span>
+                    <span class="details__distance">{{ distance }} m</span>
+                    <span class="details__points">{{ points }}</span>
+                </div>
             {{/each}}
         </div>
     </div>

@@ -184,7 +184,7 @@ app.get('/game.html', function(req, res) {
             res.render('gameDetail', {
                 game,
                 username,
-                isFavorite: userDocs[0].favorites.includes(game.id),
+                isFavorite: userDocs[0].favorites.filter(e => e.id === game.id).length > 0,
                 roundsJSON: JSON.stringify(game.rounds),
                 back: true,
                 layout: 'layout.hbs'
