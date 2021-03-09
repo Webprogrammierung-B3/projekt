@@ -1,7 +1,11 @@
 const fs = require('fs');
 const osmium = require('osmium');
 
-const fileName = 'city.osm.pbf'
+const fileName = process.argv[2];
+if (!fileName) {
+  console.log('Please specify a .pbf file name.')
+  process.exit(1)
+}
 
 const pbf = new osmium.File(fileName);
 const reader = new osmium.Reader(pbf);

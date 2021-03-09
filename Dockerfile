@@ -1,6 +1,5 @@
 FROM node:14
 
-# Create app directory
 WORKDIR /app
 
 RUN git clone https://github.com/Webprogrammierung-B3/projekt.git .
