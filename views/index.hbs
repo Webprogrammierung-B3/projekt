@@ -7,7 +7,7 @@
         <h2>High scores</h2>
         <div>
             {{#each games}}
-                <div><a href="/game.html?id={{ id }}">{{ username }}</a>: {{ points }} Punkte</div>
+                <div><a href="/game.html?id={{ id }}">{{ username }}{{#if me}} (ich){{/if}}</a>: {{ points }} Punkte</div>
             {{/each}}
         </div>
     </div>
@@ -15,7 +15,7 @@
         <h2>Most viewed</h2>
         <div>
             {{#each views}}
-                <div><a href="/game.html?id={{ id }}">{{ username }}</a>: {{ points }} Punkte (Views: {{ count }})</div>
+                <div><a href="/game.html?id={{ id }}">{{ username }}{{#if me}} (ich){{/if}}</a>: {{ points }} Punkte (Views: {{ count }})</div>
             {{/each}}
         </div>
     </div>
@@ -23,7 +23,7 @@
         <h2>Favorites</h2>
         <div>
             {{#each favorites}}
-                <div><a href="/game.html?id={{ id }}">{{ username }}</a>: {{ points }} Punkte</div>
+                <div><a href="/game.html?id={{ id }}">{{ username }}{{#if me}} (ich){{/if}}</a>: {{ points }} Punkte</div>
             {{/each}}
         </div>
     </div>

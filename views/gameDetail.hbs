@@ -7,7 +7,7 @@
 <main class="details">
     <div class="details__intro">
         <div>
-            <div>{{ game.username }} hat {{ game.relativeDate }} folgendes Ergebnis erzielt.</div>
+            <div>{{ game.username }}{{#if game.me}} (ich){{/if}} hat {{ game.relativeDate }} folgendes Ergebnis erzielt.</div>
             <div>Gesamtpunkte: {{ game.points }}</div>
         </div>
         <div class="intro__fav{{#if isFavorite}} intro__fav--active{{/if}}">
@@ -40,7 +40,7 @@
             {{#each game.comments}}
                 <div class="comment">
                     <div class="comment__header">
-                        <b>{{ username }}:</b>
+                        <b>{{ username }}{{#if me}} (ich){{/if}}:</b>
                         <span title="{{ date }}">{{ relativeDate }}</span>
                     </div>
                     <div>{{ content }}</div>

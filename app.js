@@ -98,7 +98,23 @@ app.get('/', function(req, res) {
 app.get('/index.html', function(req, res) {
     gameCollection.find({}).sort({ points: -1 }).limit(10).toArray((err, docs) => {
         userCollection.findOne({ username: req.session.username }, (err, userDoc) => {
+            const username = req.session.username;
+            for (const doc of docs) {
+                if (doc.username === username) {
+                    doc.me = true;
+                }
+            }
+            for (const game of userDoc.favorites) {
+                if (game.username === username) {
+                    game.me = true
+                }
+            }
             const views = Object.values(userDoc.views).sort((a, b) => b.count - a.count).slice(0, 5);
+            for (const game of views) {
+                if (game.username === username) {
+                    game.me = true
+                }
+            }
             res.render('index', { username: req.session.username, back: false, layout: 'layout.hbs', games: docs, favorites: userDoc.favorites, views })
         })
     })
@@ -157,6 +173,12 @@ app.get('/game.html', function(req, res) {
             game.relativeDate = timeAgo.format(game.date);
             for (const comment of game.comments) {
                 comment.relativeDate = timeAgo.format(comment.date);
+                if (comment.username === username) {
+                    comment.me = true;
+                }
+            }
+            if (game.username === username) {
+                game.me = true;
             }
             game.comments = game.comments.reverse();
             res.render('gameDetail', {
