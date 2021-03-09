@@ -26,6 +26,10 @@ let db;
 let gameCollection;
 let userCollection;
 
+if (insideDocker) {
+    app.set('trust proxy', 1) // trust first proxy
+}
+
 MongoClient.connect(url, { useUnifiedTopology: true }, function(err, client) {
     if (err) {
         throw err
@@ -38,7 +42,6 @@ MongoClient.connect(url, { useUnifiedTopology: true }, function(err, client) {
 });
 
 app.set('view engine', 'hbs');
-app.set('trust proxy', 1) // trust first proxy
 app.use(session({
     secret: appSecret || 'top secret string which wont be used in production, right?',
     resave: false,
@@ -46,8 +49,6 @@ app.use(session({
     cookie: {
         secure: secureCookie,
         maxAge: 1000 * 60 * 60 * 24 * 365, // one year in ms
-        sameSite: true,
-        httpOnly: true
     },
     store: MongoStore.create({
         mongoUrl: url + dbName
