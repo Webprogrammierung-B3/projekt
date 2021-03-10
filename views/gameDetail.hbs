@@ -61,6 +61,16 @@
     const roundElements = document.querySelectorAll('.details__round');
     const favElement = document.querySelector('.intro__fav');
     const mapElements = [];
+    const grayIcon = L.icon({
+      iconUrl: 'img/gray_marker.png',
+      iconSize:     [30, 46],
+      iconAnchor:   [15, 46]
+    });
+    const orangeIcon = L.icon({
+      iconUrl: 'img/orange_marker.png',
+      iconSize:     [30, 46],
+      iconAnchor:   [15, 46]
+    });
     const cornerTopLeft = L.latLng(52.673639351743326, 13.019099490676352);
     const cornerBottomRight = L.latLng(52.34254034713163, 13.766007272821431);
     const initialBounds = L.latLngBounds(cornerTopLeft, cornerBottomRight);
@@ -113,22 +123,22 @@
     }
 
     function renderRound(round) {
-        const guessMarker = L.marker(round.guess);
+        const guessMarker = L.marker(round.guess, { icon: orangeIcon });
         guessMarker.addTo(map);
         mapElements.push(guessMarker);
-        const closesCoordinateMarker = L.marker(round.closestCoordinate);
+        const closesCoordinateMarker = L.marker(round.closestCoordinate, { icon: grayIcon });
         closesCoordinateMarker.addTo(map);
         mapElements.push(closesCoordinateMarker);
         const line = L.polyline(round.guessLine, {
-            color: '#00ff00',
-            dashArray: '10 20'
+            color: '#5e565a',
+            dashArray: '10 20',
+            weight: 3
         });
         line.addTo(map);
         mapElements.push(line);
         const geoJson = L.geoJson(round.polygons, {
-            color: '#ff7800',
-            weight: 5,
-            opacity: 0.65
+            color: '#ff934f',
+            weight: 5
         });
         geoJson.addTo(map);
         mapElements.push(geoJson);
