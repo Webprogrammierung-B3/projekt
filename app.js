@@ -383,7 +383,7 @@ function calcBounds(currentGuess, streetPolygons) {
     }
     const bottom = Math.min(...lngValues, currentGuess.lng);
     const top = Math.max(...lngValues, currentGuess.lng);
-    return [[right, top], [left, bottom]];
+    return [[right + 0.001, top + 0.001], [left - 0.001, bottom - 0.001]];
 }
 
 app.use('/icons', express.static('node_modules/feather-icons/dist'));
