@@ -4,6 +4,7 @@
 
 ```bash 
 docker-compose up -d
+# serves at localhost:8080
 ```
 
 To **update** app service run:
@@ -21,6 +22,7 @@ npm install
 docker run --rm -p 27017:27017 -d mongo:4
 # start the node application
 npm start
+# serves at localhost:8080
 ```
 
 ## Data
